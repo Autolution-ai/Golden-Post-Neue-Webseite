@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Content Produktion — GoldenPost</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:#080808;-webkit-font-smoothing:antialiased}
+    #root{height:100%}
+    #scroll{height:100vh;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
+    #scroll::-webkit-scrollbar{width:4px}
+    #scroll::-webkit-scrollbar-track{background:#080808}
+    #scroll::-webkit-scrollbar-thumb{background:#2A2A2A;border-radius:2px}
+    .no-sb{scrollbar-width:none;-ms-overflow-style:none}
+    .no-sb::-webkit-scrollbar{display:none}
+    @keyframes gridMove{0%{transform:translateY(0)}100%{transform:translateY(64px)}}
+    @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    @keyframes pulse{0%,100%{box-shadow:0 0 32px rgba(200,169,110,.38)}50%{box-shadow:0 0 56px rgba(200,169,110,.62)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.025;pointer-events:none;z-index:9999}
+  </style>
+</head>
+<body><div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+const ACCENT = '#C8A96E';
+
+const useInView = (t=.15) => {
+  const ref=useRef(null);const [vis,setVis]=useState(false);
+  useEffect(()=>{const el=document.getElementById('scroll');const c=()=>{if(!ref.current)return;const r=ref.current.getBoundingClientRect();if(r.top<window.innerHeight*(1-t))setVis(true);};el&&el.addEventListener('scroll',c);c();return()=>el&&el.removeEventListener('scroll',c);},[]);
+  return [ref,vis];
+};
+const Tag=({children})=>(
+  <div style={{display:'inline-flex',alignItems:'center',gap:7,background:'#C8A96E18',border:'1px solid #C8A96E44',borderRadius:9999,padding:'5px 14px',marginBottom:24}}>
+    <div style={{width:5,height:5,borderRadius:'50%',background:ACCENT,boxShadow:`0 0 8px ${ACCENT}`}}/>
+    <span style={{fontFamily:'Inter,sans-serif',fontSize:10,fontWeight:600,letterSpacing:'.13em',textTransform:'uppercase',color:ACCENT}}>{children}</span>
+  </div>
+);
+const GoldBtn=({children,href,big,outline})=>{
+  const [h,setH]=useState(false);
+  const b={fontFamily:'Inter,sans-serif',fontWeight:600,borderRadius:10,cursor:'pointer',transition:'all 200ms',display:'inline-block',textDecoration:'none',textAlign:'center'};
+  return outline
+    ?<a href={href||'#'} style={{...b,fontSize:big?15:13,padding:big?'15px 38px':'9px 22px',background:h?'#C8A96E18':'transparent',border:'1px solid #C8A96E55',color:ACCENT}} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}>{children}</a>
+    :<a href={href||'#'} style={{...b,fontSize:big?15:13,padding:big?'15px 38px':'9px 22px',background:'linear-gradient(135deg,#C8A96E,#E2C990,#A07840)',color:'#080808',boxShadow:h?'0 0 40px rgba(200,169,110,.55)':'0 0 24px rgba(200,169,110,.3)',animation:'pulse 3s ease-in-out infinite'}} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}>{children}</a>;
+};
+
+/* ── Nav ── */
+const Nav=()=>{
+  const [sc,setSc]=useState(false);
+  useEffect(()=>{const el=document.getElementById('scroll');const h=()=>setSc(el.scrollTop>40);el&&el.addEventListener('scroll',h);return()=>el&&el.removeEventListener('scroll',h);},[]);
+  return(
+    <nav style={{position:'fixed',top:0,left:0,right:0,height:68,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 48px',zIndex:1000,background:sc?'rgba(8,8,8,.94)':'transparent',backdropFilter:sc?'blur(20px)':'none',borderBottom:sc?'1px solid #1E1E1E':'1px solid transparent',transition:'all 300ms'}}>
+      <a href="/" style={{display:'flex',alignItems:'center',gap:10,textDecoration:'none'}}>
+        <img src="../assets/logo.png" width={30} height={30} style={{borderRadius:5}} alt="GP"/>
+        <span style={{fontFamily:'Syne,sans-serif',fontSize:14,fontWeight:700,color:'#F0EDE8'}}>GOLDEN POST</span>
+      </a>
+      <div style={{display:'flex',gap:6}}>
+        {[{l:'Content',h:'/content/',active:true},{l:'Social Media',h:'/social-media/'},{l:'Webdesign',h:'/webdesign/'}].map(({l,h,active})=>(
+          <a key={l} href={h} style={{fontFamily:'Inter,sans-serif',fontSize:12,fontWeight:500,color:active?ACCENT:'#555',textDecoration:'none',padding:'5px 12px',borderRadius:6,background:active?'#C8A96E14':'transparent',border:active?`1px solid ${ACCENT}44`:'1px solid transparent',transition:'all 200ms'}}
+            onMouseEnter={e=>{if(!active)e.currentTarget.style.color='#999';}} onMouseLeave={e=>{if(!active)e.currentTarget.style.color='#555';}}>{l}</a>
+        ))}
+      </div>
+      <GoldBtn href="#cta">Gespräch buchen</GoldBtn>
+    </nav>
+  );
+};
+
+/* ── Hero ── */
+const Hero=()=>{
+  const [vis,setVis]=useState(false);
+  useEffect(()=>{setTimeout(()=>setVis(true),80);},[]);
+  return(
+    <section style={{position:'relative',minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'120px 48px 80px',overflow:'hidden'}}>
+      <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(#1E1E1E 1px,transparent 1px),linear-gradient(90deg,#1E1E1E 1px,transparent 1px)',backgroundSize:'64px 64px',opacity:.28,animation:'gridMove 24s linear infinite'}}/>
+      <div style={{position:'absolute',top:'-5%',left:'50%',transform:'translateX(-50%)',width:1000,height:600,background:'radial-gradient(ellipse,#C8A96E14 0%,transparent 65%)',pointerEvents:'none'}}/>
+      {/* floating orbs */}
+      <div style={{position:'absolute',width:220,height:220,borderRadius:'50%',background:'radial-gradient(circle,#C8A96E08,transparent)',top:'20%',left:'8%',animation:'float 6s ease-in-out infinite'}}/>
+      <div style={{position:'absolute',width:160,height:160,borderRadius:'50%',background:'radial-gradient(circle,#C8A96E06,transparent)',bottom:'25%',right:'10%',animation:'float 8s ease-in-out infinite 2s'}}/>
+
+      <div style={{position:'relative',maxWidth:900,textAlign:'center',opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(28px)',transition:'opacity 700ms,transform 700ms cubic-bezier(.4,0,.2,1)'}}>
+        <Tag>Content Produktion · Done For You</Tag>
+        <h1 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(42px,6.5vw,88px)',fontWeight:700,color:'#F0EDE8',lineHeight:1.02,letterSpacing:'-.04em',marginBottom:24}}>
+          Content, der<br/><span style={{color:ACCENT}}>wirklich verkauft.</span>
+        </h1>
+        <p style={{fontFamily:'Inter,sans-serif',fontSize:19,color:'#666',lineHeight:1.65,maxWidth:560,margin:'0 auto 52px'}}>
+          Professionelle Videos, Reels und Shorts – jeden Monat neu, komplett produziert von uns. Du machst dein Business, wir machen deinen Content.
+        </p>
+        <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
+          <GoldBtn href="#cta" big>Kostenloses Erstgespräch</GoldBtn>
+          <GoldBtn href="#prozess" big outline>Unser Prozess ansehen</GoldBtn>
+        </div>
+        {/* mini stats */}
+        <div style={{display:'flex',justifyContent:'center',gap:40,marginTop:64,flexWrap:'wrap'}}>
+          {[{n:'500+',l:'Videos/Monat'},{n:'48h',l:'Lieferzeit'},{n:'50+',l:'Kunden'}].map(({n,l})=>(
+            <div key={n} style={{textAlign:'center'}}>
+              <div style={{fontFamily:'Syne,sans-serif',fontSize:34,fontWeight:700,color:ACCENT,letterSpacing:'-.04em',lineHeight:1}}>{n}</div>
+              <div style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#444',marginTop:4}}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Pain / Problem ── */
+const Pain=()=>{
+  const [ref,vis]=useInView();
+  const items=[
+    {icon:'👻',head:'Du bist unsichtbar',body:'Deine Konkurrenz postet täglich – du nicht. Online existierst du kaum.'},
+    {icon:'⏰',head:'Keine Zeit',body:'Content produzieren kostet Stunden. Zeit, die du für dein Kerngeschäft brauchst.'},
+    {icon:'💸',head:'Kein System',body:'Sporadisch mal was posten bringt nichts. Content braucht Strategie und Kontinuität.'},
+  ];
+  return(
+    <section style={{padding:'100px 48px',background:'#0A0A0A',borderTop:'1px solid #1E1E1E'}}>
+      <div style={{maxWidth:1000,margin:'0 auto'}}>
+        <div ref={ref} style={{textAlign:'center',marginBottom:56,opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(20px)',transition:'all 600ms'}}>
+          <Tag>Das Problem</Tag>
+          <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(28px,4vw,52px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em',lineHeight:1.1}}>
+            Warum die meisten KMUs<br/><span style={{color:ACCENT}}>online unsichtbar bleiben.</span>
+          </h2>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+          {items.map((it,i)=>(
+            <div key={i} style={{background:'#111',border:'1px solid #1E1E1E',borderRadius:16,padding:'32px 28px',opacity:vis?1:0,transform:vis?'none':'translateY(20px)',transition:`all 600ms ${i*120}ms`}}>
+              <div style={{fontSize:32,marginBottom:16}}>{it.icon}</div>
+              <h3 style={{fontFamily:'Syne,sans-serif',fontSize:18,fontWeight:700,color:'#F0EDE8',marginBottom:8}}>{it.head}</h3>
+              <p style={{fontFamily:'Inter,sans-serif',fontSize:13,color:'#555',lineHeight:1.7}}>{it.body}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{textAlign:'center',marginTop:40,padding:'28px',background:'#C8A96E0A',border:'1px solid #C8A96E33',borderRadius:14}}>
+          <p style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(18px,2.5vw,28px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.02em'}}>
+            Am Ende gewinnt nicht der Beste – <span style={{color:ACCENT}}>sondern der Sichtbarste.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Deliverables ── */
+const Deliverables=()=>{
+  const [ref,vis]=useInView();
+  const items=[
+    {icon:'🎬',label:'Professionelle Videos',desc:'Reels, Shorts, Imagefilme – perfekt geschnitten für jede Plattform.'},
+    {icon:'📸',label:'Foto-Content',desc:'Hochwertige Fotos für deinen Feed, Stories und Website.'},
+    {icon:'✍️',label:'Captions & Texte',desc:'Verkaufsstarke Texte, Hashtag-Sets und SEO-optimierte Beschreibungen.'},
+    {icon:'📊',label:'Monatliches Reporting',desc:'Klare Zahlen: Was funktioniert, was wächst, was wir als nächstes tun.'},
+    {icon:'🎯',label:'Strategie & Positionierung',desc:'Deine Kernbotschaft, deine Zielgruppe, dein Content-Mix – alles durchdacht.'},
+    {icon:'⚡',label:'48h Lieferzeit',desc:'Nach dem Drehtag liefern wir innerhalb von 48 Stunden den ersten Content.'},
+  ];
+  return(
+    <section style={{padding:'100px 48px',background:'#080808',borderTop:'1px solid #1E1E1E'}}>
+      <div style={{maxWidth:1080,margin:'0 auto'}}>
+        <div ref={ref} style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:64,alignItems:'center'}}>
+          <div style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(24px)',transition:'all 600ms'}}>
+            <Tag>Was du bekommst</Tag>
+            <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(28px,3.5vw,48px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em',lineHeight:1.15,marginBottom:20}}>
+              Alles inklusive –<br/><span style={{color:ACCENT}}>jeden Monat neu.</span>
+            </h2>
+            <p style={{fontFamily:'Inter,sans-serif',fontSize:15,color:'#555',lineHeight:1.75,marginBottom:32}}>
+              Wir übernehmen die komplette Content-Maschinerie. Von der Strategie über den Drehtag bis zur Veröffentlichung – du gibst nur frei.
+            </p>
+            <GoldBtn href="#cta" big>Jetzt loslegen</GoldBtn>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,opacity:vis?1:0,transition:'all 700ms 150ms'}}>
+            {items.map((it,i)=>(
+              <div key={i} style={{background:'#0D0D0D',border:'1px solid #1E1E1E',borderRadius:12,padding:'20px 18px',transition:'all 250ms',cursor:'default'}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='#C8A96E44';e.currentTarget.style.background='#C8A96E06';}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='#1E1E1E';e.currentTarget.style.background='#0D0D0D';}}>
+                <div style={{fontSize:22,marginBottom:10}}>{it.icon}</div>
+                <div style={{fontFamily:'Syne,sans-serif',fontSize:13,fontWeight:700,color:'#F0EDE8',marginBottom:6}}>{it.label}</div>
+                <div style={{fontFamily:'Inter,sans-serif',fontSize:11,color:'#444',lineHeight:1.6}}>{it.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Process Roadmap ── */
+const steps=[
+  {num:'01',label:'Strategie & Positionierung',short:'Strategie',desc:'Wir analysieren dein Unternehmen, Zielgruppe und Wettbewerber. Gemeinsam entwickeln wir Kernbotschaften und den perfekten Content-Mix für deine Plattformen.',bullets:['Marken-Positionierung','Zielgruppenanalyse','Plattform-Strategie','Kernbotschaften & Tonality']},
+  {num:'02',label:'Drehtag vor Ort',short:'Drehtag',desc:'Unser Kamera-Team kommt zu dir – 4 Stunden Dreh ergeben einen ganzen Monat Content. Professionelles Equipment, Licht und Ton inklusive. Du musst nichts vorbereiten.',bullets:['Vor-Ort bei dir','4h = 1 Monat Content','Professionelles Equipment','Natürliche, authentische Aufnahmen']},
+  {num:'03',label:'Schnitt & Postproduktion',short:'Produktion',desc:'Innerhalb von 48 Stunden liefern wir fertig geschnittene Videos, Fotos und alle Materialien. Mit Untertiteln, Musik, Farbkorrektur und plattformgerechten Formaten.',bullets:['Fertige Videos in 48h','Reels, Shorts, Stories','Untertitel & Musik','Alle Formate & Auflösungen']},
+  {num:'04',label:'Veröffentlichung & Wachstum',short:'Wachstum',desc:'Wir posten mit optimalem Timing, optimierten Captions und Hashtag-Sets. Monatliches Reporting zeigt dir genau, was wächst – und wir optimieren kontinuierlich.',bullets:['Posting mit perfektem Timing','Caption & Hashtag-Optimierung','Monatliches Performance-Reporting','Kontinuierliche Strategie-Anpassung']},
+];
+
+const ProcessSection=()=>{
+  const [active,setActive]=useState(0);
+  const [vis,setVis]=useState(false);
+  const ref=useRef(null);
+  useEffect(()=>{const el=document.getElementById('scroll');const c=()=>{if(!ref.current)return;if(ref.current.getBoundingClientRect().top<window.innerHeight*.8)setVis(true);};el&&el.addEventListener('scroll',c);c();return()=>el&&el.removeEventListener('scroll',c);},[]);
+  const progress=(active/(steps.length-1))*80;
+  return(
+    <section id="prozess" ref={ref} style={{padding:'120px 48px',background:'#0A0A0A',borderTop:'1px solid #1E1E1E'}}>
+      <div style={{maxWidth:1100,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:72,opacity:vis?1:0,transform:vis?'none':'translateY(20px)',transition:'all 600ms'}}>
+          <Tag>Roadmap der Zusammenarbeit</Tag>
+          <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(28px,4vw,52px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em',lineHeight:1.1}}>Von 0 auf Sichtbarkeit –<br/><span style={{color:ACCENT}}>in 4 Schritten.</span></h2>
+        </div>
+        {/* Timeline */}
+        <div style={{position:'relative',display:'flex',marginBottom:48}}>
+          <div style={{position:'absolute',top:24,left:'10%',right:'10%',height:2,background:'#1E1E1E',zIndex:0}}/>
+          <div style={{position:'absolute',top:24,left:'10%',height:2,background:'linear-gradient(90deg,#C8A96E,#C8A96E88)',width:`${progress}%`,zIndex:1,transition:'width 500ms cubic-bezier(.4,0,.2,1)'}}/>
+          <div style={{display:'flex',width:'100%',position:'relative',zIndex:2}}>
+            {steps.map((s,i)=>(
+              <div key={i} onClick={()=>setActive(i)} style={{flex:1,textAlign:'center',cursor:'pointer',padding:'0 4px'}}>
+                <div style={{width:48,height:48,borderRadius:'50%',margin:'0 auto 10px',background:i<=active?'linear-gradient(135deg,#C8A96E,#A07840)':'#111',border:`2px solid ${i<=active?ACCENT:'#2A2A2A'}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Syne,sans-serif',fontSize:13,fontWeight:700,color:i<=active?'#080808':'#555',transition:'all 300ms',boxShadow:i===active?`0 0 20px ${ACCENT}55`:'none',opacity:vis?1:0,transform:vis?'scale(1)':'scale(.8)',transitionDelay:`${i*80}ms`}}>
+                  {i<active?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#080808" strokeWidth="2.5"><polyline points="20,6 9,17 4,12"/></svg>:s.num}
+                </div>
+                <div style={{fontFamily:'Inter,sans-serif',fontSize:10,fontWeight:600,textTransform:'uppercase',letterSpacing:'.06em',color:i===active?'#F0EDE8':'#333'}}>{s.short}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Detail */}
+        <div style={{background:'#111',border:'1px solid #C8A96E44',borderRadius:20,padding:'44px 48px'}}>
+          <div style={{display:'flex',gap:48,flexWrap:'wrap',alignItems:'flex-start'}}>
+            <div style={{flex:1,minWidth:260}}>
+              <div style={{fontFamily:'Syne,sans-serif',fontSize:52,fontWeight:700,color:'#C8A96E18',lineHeight:1,marginBottom:8,letterSpacing:'-.04em'}}>{steps[active].num}</div>
+              <h3 style={{fontFamily:'Syne,sans-serif',fontSize:26,fontWeight:700,color:'#F0EDE8',letterSpacing:'-.02em',lineHeight:1.2,marginBottom:14}}>{steps[active].label}</h3>
+              <p style={{fontFamily:'Inter,sans-serif',fontSize:14,color:'#666',lineHeight:1.8}}>{steps[active].desc}</p>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,minWidth:260}}>
+              {steps[active].bullets.map((b,i)=>(
+                <div key={i} style={{background:'#1A1A1A',border:'1px solid #2A2A2A',borderRadius:10,padding:'14px 16px',display:'flex',alignItems:'center',gap:10}}>
+                  <div style={{width:6,height:6,borderRadius:'50%',background:ACCENT,flexShrink:0}}/>
+                  <span style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#888'}}>{b}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {active<steps.length-1&&(
+            <div style={{marginTop:28,display:'flex',justifyContent:'flex-end'}}>
+              <button onClick={()=>setActive(a=>a+1)} style={{display:'flex',alignItems:'center',gap:8,background:'transparent',border:'1px solid #2A2A2A',borderRadius:8,padding:'8px 20px',cursor:'pointer',color:'#666',fontFamily:'Inter,sans-serif',fontSize:13,transition:'all 200ms'}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor=ACCENT;e.currentTarget.style.color=ACCENT;}} onMouseLeave={e=>{e.currentTarget.style.borderColor='#2A2A2A';e.currentTarget.style.color='#666';}}>
+                Nächster Schritt <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="9,18 15,12 9,6"/></svg>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── iPhone Video Carousel ── */
+const SLIDE_H=622;
+const videoFeed=[
+  {id:'david',youtubeId:'',posterGradient:'linear-gradient(160deg,#1A1200,#0D0D0D)',handle:'@ita.engineering',name:'David K.',companyFull:'ITA Engineering',branch:'Industrie / Recruiting',service:'Social Media Betreuung',result:'350',unit:'Bewerbungen',timeframe:'in 60 Tagen',tag:'Recruiting',caption:'350 Bewerbungen in 60 Tagen. So sieht Content aus, der Ergebnisse liefert.',likes:'4.8k',comments:'312'},
+  {id:'thomas',youtubeId:'',posterGradient:'linear-gradient(160deg,#0A1500,#0D0D0D)',handle:'@eisbuben.manufaktur',name:'Thomas M.',companyFull:'Eisbuben Manufaktur',branch:'Gastronomie / Food',service:'Social Media & Imagefilm',result:'3.2M',unit:'Reichweite',timeframe:'in 4 Monaten',tag:'Brand Awareness',caption:'3,2 Millionen Aufrufe in 4 Monaten. Vom lokalen Eisladen zur viralen Marke.',likes:'12.1k',comments:'847'},
+  {id:'regine',youtubeId:'',posterGradient:'linear-gradient(160deg,#0A0A1A,#0D0D0D)',handle:'@thorn.immobilien',name:'Regine T.',companyFull:'Thorn Immobilien',branch:'Immobilien',service:'Webdesign & SEO',result:'180%',unit:'mehr Anfragen',timeframe:'nach Launch',tag:'Lead Gen',caption:'+180% Anfragen nach dem Website-Launch. Content als Vertriebsmaschine.',likes:'6.3k',comments:'501'},
+  {id:'leonard',youtubeId:'',posterGradient:'linear-gradient(160deg,#150A0A,#0D0D0D)',handle:'@raumton.gmbh',name:'Leonard B.',companyFull:'raumton GmbH',branch:'Musik / Events',service:'Imagefilm & Social Media',result:'12',unit:'Neukunden',timeframe:'im 1. Monat',tag:'Neukundengewinnung',caption:'12 Neukunden im ersten Monat. Imagefilm trifft auf Strategie.',likes:'3.2k',comments:'198'},
+];
+
+const VideoSlide=({video,isActive})=>{
+  const [playing,setPlaying]=useState(false);
+  useEffect(()=>{if(!isActive)setPlaying(false);},[isActive]);
+  const hasYT=video.youtubeId&&video.youtubeId.length>3;
+  return(
+    <div style={{position:'relative',width:'100%',height:SLIDE_H,flexShrink:0,overflow:'hidden',background:video.posterGradient,scrollSnapAlign:'start'}}>
+      {playing&&hasYT&&<iframe src={`https://www.youtube.com/embed/${video.youtubeId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`} style={{position:'absolute',inset:0,width:'100%',height:'100%',border:'none'}} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen/>}
+      {!playing&&(
+        <>
+          <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse at 40% 60%,rgba(200,169,110,.1),transparent 65%)'}}/>
+          <div style={{position:'absolute',bottom:0,left:0,right:0,height:'60%',background:'linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,.35) 60%,transparent)'}}/>
+          <div onClick={()=>hasYT&&setPlaying(true)} style={{position:'absolute',top:'42%',left:'50%',transform:'translate(-50%,-50%)',cursor:hasYT?'pointer':'default',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+            <div style={{width:60,height:60,borderRadius:'50%',background:'rgba(200,169,110,.18)',border:'1.5px solid rgba(200,169,110,.5)',backdropFilter:'blur(10px)',display:'flex',alignItems:'center',justifyContent:'center'}}
+              onMouseEnter={e=>{if(hasYT)e.currentTarget.style.background='rgba(200,169,110,.32)';}} onMouseLeave={e=>e.currentTarget.style.background='rgba(200,169,110,.18)'}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill={ACCENT}><polygon points="6,3 20,12 6,21"/></svg>
+            </div>
+            {!hasYT&&<span style={{fontFamily:'Inter,sans-serif',fontSize:10,color:'rgba(200,169,110,.55)',letterSpacing:'.08em',textTransform:'uppercase'}}>Video einfügen</span>}
+          </div>
+          <div style={{position:'absolute',bottom:52,left:12,right:52}}>
+            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
+              <div style={{width:28,height:28,borderRadius:'50%',background:'linear-gradient(135deg,#C8A96E,#A07840)',border:'1.5px solid #C8A96E',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <span style={{fontFamily:'Syne,sans-serif',fontSize:10,fontWeight:800,color:'#080808'}}>{video.name[0]}</span>
+              </div>
+              <span style={{fontFamily:'Inter,sans-serif',fontSize:11,fontWeight:700,color:'#F0EDE8'}}>{video.handle}</span>
+              <div style={{background:ACCENT,borderRadius:3,padding:'1px 6px'}}><span style={{fontFamily:'Inter,sans-serif',fontSize:8,fontWeight:700,color:'#080808',letterSpacing:'.05em',textTransform:'uppercase'}}>{video.tag}</span></div>
+            </div>
+            <p style={{fontFamily:'Inter,sans-serif',fontSize:11,color:'rgba(240,237,232,.88)',lineHeight:1.55,margin:0}}>{video.caption}</p>
+          </div>
+          <div style={{position:'absolute',right:10,bottom:80,display:'flex',flexDirection:'column',gap:18,alignItems:'center'}}>
+            {[{icon:'♥',val:video.likes,c:'#E05252'},{icon:'💬',val:video.comments,c:'#CCC'},{icon:'↗',val:'Teilen',c:'#CCC'}].map((it,i)=>(
+              <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                <div style={{width:38,height:38,borderRadius:'50%',background:'rgba(0,0,0,.45)',backdropFilter:'blur(6px)',border:'1px solid rgba(255,255,255,.1)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <span style={{fontSize:15,color:i===0?it.c:'#CCC'}}>{it.icon}</span>
+                </div>
+                <span style={{fontFamily:'Inter,sans-serif',fontSize:9,color:'rgba(255,255,255,.65)'}}>{it.val}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{position:'absolute',top:52,right:10,background:'rgba(0,0,0,.5)',backdropFilter:'blur(6px)',borderRadius:6,padding:'3px 8px',display:'flex',alignItems:'center',gap:5}}>
+            <div style={{width:14,height:14,borderRadius:3,background:'linear-gradient(135deg,#C8A96E,#A07840)',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontFamily:'Syne,sans-serif',fontSize:7,fontWeight:800,color:'#080808'}}>GP</span></div>
+            <span style={{fontFamily:'Inter,sans-serif',fontSize:9,fontWeight:600,color:ACCENT,letterSpacing:'.04em'}}>GOLDENPOST</span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const IPhoneCarousel=()=>{
+  const [activeIdx,setActiveIdx]=useState(0);
+  const feedRef=useRef(null);
+  const [ref,vis]=useInView(.05);
+  const handleScroll=()=>{if(!feedRef.current)return;const idx=Math.round(feedRef.current.scrollTop/SLIDE_H);setActiveIdx(Math.min(Math.max(idx,0),videoFeed.length-1));};
+  const scrollTo=i=>{if(!feedRef.current)return;feedRef.current.scrollTo({top:i*SLIDE_H,behavior:'smooth'});setActiveIdx(i);};
+  const cur=videoFeed[activeIdx];
+  return(
+    <section style={{padding:'120px 48px',background:'#0D0D0D',borderTop:'1px solid #1E1E1E'}}>
+      <div style={{maxWidth:1100,margin:'0 auto'}}>
+        <div ref={ref} style={{textAlign:'center',marginBottom:72,opacity:vis?1:0,transform:vis?'none':'translateY(20px)',transition:'all 600ms'}}>
+          <Tag>Referenzen</Tag>
+          <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(28px,4vw,52px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em'}}>Echte Ergebnisse. Echte Videos.</h2>
+          <p style={{fontFamily:'Inter,sans-serif',fontSize:15,color:'#555',marginTop:12}}>Scroll durch die Erfolgsgeschichten unserer Kunden.</p>
+        </div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:72}}>
+          {/* iPhone */}
+          <div style={{position:'relative',flexShrink:0}}>
+            <div style={{position:'absolute',inset:-70,background:'radial-gradient(ellipse,rgba(200,169,110,.14),transparent 65%)',pointerEvents:'none'}}/>
+            <div style={{position:'relative',width:310,height:640,borderRadius:54,background:'linear-gradient(145deg,#2E2E30,#1C1C1E 45%,#2A2A2C)',boxShadow:'0 0 0 1px #3D3D3F,inset 0 0 0 1px rgba(255,255,255,.05),0 60px 120px rgba(0,0,0,.9)',zIndex:1}}>
+              <div style={{position:'absolute',inset:0,borderRadius:54,background:'linear-gradient(140deg,rgba(255,255,255,.07),transparent 45%,rgba(255,255,255,.02))',pointerEvents:'none'}}/>
+              <div style={{position:'absolute',left:-3,top:104,width:3,height:26,background:'#1A1A1C',borderRadius:'2px 0 0 2px'}}/>
+              <div style={{position:'absolute',left:-3,top:146,width:3,height:38,background:'#1A1A1C',borderRadius:'2px 0 0 2px'}}/>
+              <div style={{position:'absolute',left:-3,top:196,width:3,height:38,background:'#1A1A1C',borderRadius:'2px 0 0 2px'}}/>
+              <div style={{position:'absolute',right:-3,top:158,width:3,height:72,background:'#1A1A1C',borderRadius:'0 2px 2px 0'}}/>
+              <div style={{position:'absolute',top:9,left:9,right:9,bottom:9,borderRadius:46,background:'#000',overflow:'hidden'}}>
+                {/* Status bar */}
+                <div style={{position:'absolute',top:0,left:0,right:0,height:50,zIndex:20,display:'flex',alignItems:'flex-start',justifyContent:'space-between',padding:'13px 22px 0',pointerEvents:'none'}}>
+                  <span style={{fontFamily:'Inter,sans-serif',fontSize:13,fontWeight:700,color:'#F0EDE8',letterSpacing:'-.02em'}}>9:41</span>
+                  <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                    <div style={{display:'flex',gap:2,alignItems:'flex-end'}}>{[4,6,9,12].map((h,i)=><div key={i} style={{width:3,height:h,borderRadius:1,background:i<3?'#F0EDE8':'rgba(255,255,255,.3)'}}/>)}</div>
+                    <div style={{width:22,height:10,borderRadius:3,border:'1.5px solid rgba(255,255,255,.35)',padding:'1px',display:'flex',alignItems:'center'}}><div style={{width:'75%',height:'100%',background:'#4CAF7D',borderRadius:1.5}}/></div>
+                  </div>
+                </div>
+                <div style={{position:'absolute',top:11,left:'50%',transform:'translateX(-50%)',width:118,height:34,background:'#000',borderRadius:20,zIndex:25,boxShadow:'0 0 0 2px #0a0a0a'}}/>
+                <div ref={feedRef} onScroll={handleScroll} className="no-sb" style={{position:'absolute',inset:0,overflowY:'scroll',scrollSnapType:'y mandatory',WebkitOverflowScrolling:'touch'}}>
+                  {videoFeed.map((v,i)=><VideoSlide key={v.id} video={v} isActive={i===activeIdx}/>)}
+                </div>
+                <div style={{position:'absolute',right:7,top:'50%',transform:'translateY(-50%)',display:'flex',flexDirection:'column',gap:5,zIndex:30,pointerEvents:'none'}}>
+                  {videoFeed.map((_,i)=><div key={i} style={{width:3,height:i===activeIdx?20:4,borderRadius:2,background:i===activeIdx?ACCENT:'rgba(255,255,255,.2)',transition:'all 300ms'}}/>)}
+                </div>
+                <div style={{position:'absolute',bottom:7,left:'50%',transform:'translateX(-50%)',width:108,height:4,background:'rgba(255,255,255,.38)',borderRadius:3,zIndex:30,pointerEvents:'none'}}/>
+              </div>
+            </div>
+            <div style={{position:'absolute',bottom:-34,left:'50%',transform:'translateX(-50%)',display:'flex',alignItems:'center',gap:5,whiteSpace:'nowrap'}}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5"><line x1="12" y1="4" x2="12" y2="20"/><polyline points="8,16 12,20 16,16"/></svg>
+              <span style={{fontFamily:'Inter,sans-serif',fontSize:10,color:'#333',letterSpacing:'.06em'}}>Im Handy scrollen</span>
+            </div>
+          </div>
+          {/* Info panel */}
+          <div style={{maxWidth:300,flex:1}}>
+            <div style={{background:'#111',border:'1px solid #C8A96E44',borderRadius:20,padding:'32px 28px',marginBottom:20,transition:'all 300ms'}}>
+              <div style={{fontFamily:'Syne,sans-serif',fontSize:58,fontWeight:700,color:ACCENT,letterSpacing:'-.05em',lineHeight:1,marginBottom:4,fontVariantNumeric:'tabular-nums'}}>{cur.result}</div>
+              <div style={{fontFamily:'Syne,sans-serif',fontSize:18,fontWeight:600,color:'#F0EDE8',marginBottom:4}}>{cur.unit}</div>
+              <div style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#444'}}>{cur.timeframe}</div>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:24}}>
+              {[{l:'Kunde',v:cur.name,g:false},{l:'Branche',v:cur.branch,g:false},{l:'Leistung',v:cur.service,g:true}].map((row,i,arr)=>(
+                <React.Fragment key={row.l}>
+                  <div style={{display:'flex',justifyContent:'space-between'}}><span style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#444'}}>{row.l}</span><span style={{fontFamily:'Inter,sans-serif',fontSize:12,fontWeight:500,color:row.g?ACCENT:'#999'}}>{row.v}</span></div>
+                  {i<arr.length-1&&<div style={{height:1,background:'#1A1A1A'}}/>}
+                </React.Fragment>
+              ))}
+            </div>
+            <div style={{display:'flex',gap:6}}>
+              {videoFeed.map((_,i)=><button key={i} onClick={()=>scrollTo(i)} style={{width:i===activeIdx?24:8,height:8,borderRadius:4,border:'none',cursor:'pointer',padding:0,background:i===activeIdx?ACCENT:'#2A2A2A',transition:'all 300ms'}}/>)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── FAQ ── */
+const faqs=[
+  {q:'Was passiert wenn ich kein Equipment habe?',a:'Kein Problem – wir bringen alles mit. Kamera, Licht, Ton, Gimbal. Du musst nichts vorbereiten außer 4 Stunden Zeit.'},
+  {q:'Wie viele Videos bekommen ich pro Monat?',a:'Das hängt von deinem Paket ab. In der Regel produzieren wir 8–16 fertige Inhalte pro Monat aus einem Drehtag.'},
+  {q:'Muss ich vor der Kamera sprechen?',a:'Nicht zwingend – aber wir empfehlen es. Authentische Gesichter performen deutlich besser als Stock-Material. Wir bereiten dich vor und nehmen die Anspannung.'},
+  {q:'Wie läuft die Freigabe ab?',a:'Du siehst jeden Beitrag vor der Veröffentlichung und gibst ihn per WhatsApp oder E-Mail frei. Änderungswünsche setzen wir kurzfristig um.'},
+  {q:'In welchen Städten seid ihr aktiv?',a:'Wir sind deutschlandweit tätig. Unser Team reist zu dir – egal ob München, Berlin, Hamburg oder ländlicher Raum.'},
+];
+
+const FAQSection=()=>{
+  const [open,setOpen]=useState(null);
+  const [ref,vis]=useInView();
+  return(
+    <section style={{padding:'100px 48px',background:'#080808',borderTop:'1px solid #1E1E1E'}}>
+      <div style={{maxWidth:740,margin:'0 auto'}}>
+        <div ref={ref} style={{textAlign:'center',marginBottom:56,opacity:vis?1:0,transition:'all 600ms'}}>
+          <Tag>FAQ</Tag>
+          <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(26px,3.5vw,44px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em'}}>Häufige Fragen</h2>
+        </div>
+        <div style={{borderTop:'1px solid #2A2A2A'}}>
+          {faqs.map((item,i)=>(
+            <div key={i} style={{borderBottom:'1px solid #1E1E1E'}}>
+              <button onClick={()=>setOpen(open===i?null:i)} style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',padding:open===i?'20px 0 20px 16px':'20px 0 20px 2px',background:'none',border:'none',cursor:'pointer',textAlign:'left',borderLeft:open===i?`3px solid ${ACCENT}`:'3px solid transparent',transition:'all 200ms'}}>
+                <span style={{fontFamily:'Inter,sans-serif',fontSize:14,fontWeight:500,color:open===i?'#F0EDE8':'#AAA',paddingRight:16}}>{item.q}</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={open===i?ACCENT:'#333'} strokeWidth="1.5" style={{flexShrink:0,transform:open===i?'rotate(45deg)':'none',transition:'transform 300ms'}}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <div style={{overflow:'hidden',maxHeight:open===i?240:0,transition:'max-height 350ms cubic-bezier(.4,0,.2,1)'}}>
+                <p style={{fontFamily:'Inter,sans-serif',fontSize:13,color:'#666',lineHeight:1.8,paddingBottom:20,paddingLeft:16}}>{item.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── CTA ── */
+const CTASection=()=>{
+  const [ref,vis]=useInView();
+  return(
+    <section id="cta" style={{padding:'140px 48px',background:'#080808',borderTop:'1px solid #1E1E1E',position:'relative',overflow:'hidden',textAlign:'center'}}>
+      <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 80% 60% at 50% 50%,#C8A96E0E,transparent 70%)',pointerEvents:'none'}}/>
+      <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(#1E1E1E 1px,transparent 1px),linear-gradient(90deg,#1E1E1E 1px,transparent 1px)',backgroundSize:'64px 64px',opacity:.12}}/>
+      <div ref={ref} style={{position:'relative',maxWidth:660,margin:'0 auto',opacity:vis?1:0,transform:vis?'none':'translateY(24px)',transition:'all 700ms'}}>
+        <Tag>Jetzt starten</Tag>
+        <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(32px,5vw,64px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.04em',lineHeight:1.05,marginBottom:16}}>
+          Bereit für Content,<br/><span style={{color:ACCENT}}>der wirklich wirkt?</span>
+        </h2>
+        <p style={{fontFamily:'Inter,sans-serif',fontSize:15,color:'#555',lineHeight:1.7,marginBottom:44}}>Kostenloses Erstgespräch – keine Verpflichtung. Wir analysieren deine aktuelle Sichtbarkeit und zeigen dir, was möglich ist.</p>
+        <GoldBtn href="mailto:hello@goldenpost.de" big>Kostenloses Gespräch buchen →</GoldBtn>
+        <p style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#333',marginTop:20}}>Für ausgewählte Betriebe: 1 kostenloses Probevideo</p>
+      </div>
+    </section>
+  );
+};
+
+/* ── Footer ── */
+const Footer=()=>(
+  <footer style={{padding:'48px 48px 32px',borderTop:'1px solid #1E1E1E',background:'#080808'}}>
+    <div style={{maxWidth:1100,margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:20}}>
+      <a href="/" style={{display:'flex',alignItems:'center',gap:10,textDecoration:'none'}}>
+        <img src="../assets/logo.png" width={28} height={28} style={{borderRadius:5}} alt="GP"/>
+        <span style={{fontFamily:'Syne,sans-serif',fontSize:13,fontWeight:700,color:'#3A3A3A'}}>GOLDEN POST</span>
+      </a>
+      <div style={{display:'flex',gap:24}}>
+        {[{l:'Social Media',h:'/social-media/'},{l:'Webdesign',h:'/webdesign/'},{l:'Startseite',h:'/'}].map(({l,h})=>(
+          <a key={l} href={h} style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#333',textDecoration:'none'}} onMouseEnter={e=>e.target.style.color='#777'} onMouseLeave={e=>e.target.style.color='#333'}>{l}</a>
+        ))}
+      </div>
+      <span style={{fontFamily:'Inter,sans-serif',fontSize:11,color:'#222'}}>© 2026 GoldenPost</span>
+    </div>
+  </footer>
+);
+
+const App=()=>(
+  <div id="scroll">
+    <Nav/><Hero/><Pain/><Deliverables/><ProcessSection/><IPhoneCarousel/><FAQSection/><CTASection/><Footer/>
+  </div>
+);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

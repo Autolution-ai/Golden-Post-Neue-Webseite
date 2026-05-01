@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Webdesign & SEO – GoldenPost</title>
+<meta name="description" content="Professionelle Websites, die konvertieren. Maßgeschneiderte Webdesign-Lösungen mit SEO-Optimierung von GoldenPost."/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:#080808;color:#F0EDE8;font-family:'Helvetica Neue',Arial,sans-serif;overflow-x:hidden}
+  body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E") repeat;pointer-events:none;z-index:9999;opacity:.4}
+  #root{min-height:100vh}
+  #scroll{height:100vh;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
+  .no-scrollbar::-webkit-scrollbar{display:none}
+  .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+  @keyframes pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+  @keyframes barGrow{from{width:0}to{width:var(--w)}}
+  @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @keyframes gridMove{0%{transform:translateY(0)}100%{transform:translateY(60px)}}
+  @keyframes typing{from{width:0}to{width:100%}}
+  @keyframes blink{50%{border-color:transparent}}
+  @keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes scanline{0%{top:-10%}100%{top:110%}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+/* ── Design tokens ──────────────────────────────────── */
+const GOLD   = '#C8A96E';
+const ACCENT = '#60A5FA'; // Blue for Webdesign
+const BG     = '#080808';
+const CARD   = '#0E0E0E';
+const BORDER = '#1E1E1E';
+const BORDER2 = '#2A2A2A';
+const TEXT   = '#F0EDE8';
+const MUTED  = '#888';
+
+/* ── useInView hook ─────────────────────────────────── */
+const useInView = (t = .15) => {
+  const ref = useRef(null);
+  const [vis, setVis] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById('scroll');
+    const c = () => {
+      if (!ref.current) return;
+      if (ref.current.getBoundingClientRect().top < window.innerHeight * (1 - t)) setVis(true);
+    };
+    el && el.addEventListener('scroll', c);
+    c();
+    return () => el && el.removeEventListener('scroll', c);
+  }, []);
+  return [ref, vis];
+};
+
+/* ── Shared components ──────────────────────────────── */
+const Tag = ({ children, color = ACCENT }) => (
+  <span style={{display:'inline-block',background:`${color}18`,color,border:`1px solid ${color}33`,borderRadius:999,padding:'4px 14px',fontSize:12,fontWeight:600,letterSpacing:.8,textTransform:'uppercase'}}>
+    {children}
+  </span>
+);
+
+const GoldBtn = ({ children, href, style={} }) => (
+  <a href={href} style={{display:'inline-block',background:`linear-gradient(135deg,${GOLD},#a07840)`,color:'#000',fontWeight:700,fontSize:15,padding:'14px 32px',borderRadius:8,textDecoration:'none',letterSpacing:.3,...style}}>
+    {children}
+  </a>
+);
+
+const Gold = ({ children }) => <span style={{color:GOLD}}>{children}</span>;
+
+/* ── Nav ────────────────────────────────────────────── */
+const Nav = () => {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById('scroll');
+    const h = () => setScrolled(el.scrollTop > 40);
+    el && el.addEventListener('scroll', h);
+    return () => el && el.removeEventListener('scroll', h);
+  }, []);
+  const links = [
+    { label:'Start', href:'/' },
+    { label:'Content', href:'/content/' },
+    { label:'Social Media', href:'/social-media/' },
+    { label:'Webdesign', href:'/webdesign/', active:true },
+  ];
+  return (
+    <nav style={{position:'sticky',top:0,zIndex:100,transition:'background .3s',background:scrolled?'rgba(8,8,8,.92)':'transparent',backdropFilter:scrolled?'blur(12px)':'none',borderBottom:scrolled?`1px solid ${BORDER}`:'1px solid transparent'}}>
+      <div style={{maxWidth:1100,margin:'0 auto',padding:'0 24px',height:64,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <a href="/" style={{display:'flex',alignItems:'center',gap:10,textDecoration:'none'}}>
+          <img src="../assets/logo.png" alt="GoldenPost" style={{height:32}} onError={e=>{e.target.style.display='none'}}/>
+          <span style={{color:TEXT,fontWeight:700,fontSize:17,letterSpacing:.5}}>Golden<Gold>Post</Gold></span>
+        </a>
+        <div style={{display:'flex',gap:6}}>
+          {links.map(l => (
+            <a key={l.label} href={l.href} style={{padding:'7px 14px',borderRadius:6,textDecoration:'none',fontSize:13,fontWeight:l.active?700:500,color:l.active?ACCENT:MUTED,background:l.active?`${ACCENT}12`:'transparent',border:l.active?`1px solid ${ACCENT}33`:'1px solid transparent',transition:'all .2s'}}>
+              {l.label}
+            </a>
+          ))}
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+/* ── Hero ────────────────────────────────────────────── */
+const Hero = () => {
+  const [ref, vis] = useInView(0);
+  return (
+    <section ref={ref} style={{position:'relative',minHeight:'90vh',display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden',padding:'120px 24px 80px'}}>
+      {/* Grid background */}
+      <div style={{position:'absolute',inset:0,backgroundImage:`linear-gradient(${BORDER} 1px,transparent 1px),linear-gradient(90deg,${BORDER} 1px,transparent 1px)`,backgroundSize:'60px 60px',opacity:.3,animation:'gridMove 8s linear infinite'}}/>
+      {/* Floating orbs */}
+      <div style={{position:'absolute',width:500,height:500,borderRadius:'50%',background:`radial-gradient(circle,${ACCENT}18 0%,transparent 70%)`,top:'10%',right:'-10%',animation:'float 7s ease-in-out infinite'}}/>
+      <div style={{position:'absolute',width:350,height:350,borderRadius:'50%',background:`radial-gradient(circle,${GOLD}10 0%,transparent 70%)`,bottom:'15%',left:'-8%',animation:'float 9s ease-in-out infinite reverse'}}/>
+      <div style={{position:'absolute',width:200,height:200,borderRadius:'50%',background:`radial-gradient(circle,${ACCENT}25 0%,transparent 70%)`,top:'50%',left:'30%',animation:'float 5s ease-in-out infinite 2s'}}/>
+
+      <div style={{position:'relative',zIndex:2,textAlign:'center',maxWidth:800}}>
+        <div style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(30px)',transition:'all .8s ease',marginBottom:20}}>
+          <Tag>Webdesign & SEO</Tag>
+        </div>
+        <h1 style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(30px)',transition:'all .8s ease .15s',fontSize:'clamp(38px,6vw,72px)',fontWeight:800,lineHeight:1.1,letterSpacing:-1.5,marginBottom:24}}>
+          Websites, die<br/><span style={{color:ACCENT}}>wirklich konvertieren</span>
+        </h1>
+        <p style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(30px)',transition:'all .8s ease .3s',fontSize:18,color:MUTED,maxWidth:560,margin:'0 auto 40px',lineHeight:1.7}}>
+          Keine Template-Lösungen. Keine 08/15-Websites. Wir bauen individuelle digitale Erlebnisse, die Besucher in Kunden verwandeln — messbar und nachhaltig.
+        </p>
+        <div style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(30px)',transition:'all .8s ease .45s',display:'flex',gap:16,justifyContent:'center',flexWrap:'wrap'}}>
+          <GoldBtn href="#contact">Kostenlose Website-Analyse →</GoldBtn>
+          <a href="#portfolio" style={{display:'inline-block',background:'transparent',color:TEXT,fontWeight:600,fontSize:15,padding:'14px 32px',borderRadius:8,textDecoration:'none',border:`1px solid ${BORDER2}`}}>
+            Portfolio ansehen
+          </a>
+        </div>
+        <div style={{opacity:vis?1:0,transition:'all .8s ease .6s',marginTop:48,display:'flex',gap:40,justifyContent:'center',flexWrap:'wrap'}}>
+          {[['15+','Websites launched'],['#1','Google Rankings'],['4.8★','Kundenbewertung']].map(([n,l]) => (
+            <div key={l} style={{textAlign:'center'}}>
+              <div style={{fontSize:28,fontWeight:800,color:ACCENT}}>{n}</div>
+              <div style={{fontSize:12,color:MUTED,marginTop:2}}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Problem / Pain section ──────────────────────────── */
+const Pain = () => {
+  const [ref, vis] = useInView();
+  const problems = [
+    { icon:'😤', title:'Ihre Website bringt keine Anfragen', desc:'Schönes Design allein reicht nicht. Ohne Conversion-Optimierung verlassen 97% der Besucher die Seite ohne Kontakt.' },
+    { icon:'🐌', title:'Ladezeit killt Ihre Google-Platzierung', desc:'Google straft langsame Seiten ab. Jede Sekunde mehr Ladezeit kostet Sie 7% weniger Conversions.' },
+    { icon:'📵', title:'Mobile-Nutzer springen sofort ab', desc:'60% aller Suchanfragen kommen vom Handy. Eine schlechte Mobile-Experience bedeutet verlorene Kunden.' },
+    { icon:'🔍', title:'Niemand findet Sie bei Google', desc:'Ohne technische SEO-Basis und On-Page-Optimierung sind Sie für potenzielle Kunden unsichtbar.' },
+  ];
+  return (
+    <section ref={ref} style={{padding:'100px 24px',background:`linear-gradient(180deg,${BG} 0%,#0a0808 100%)`}}>
+      <div style={{maxWidth:1100,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:60}}>
+          <Tag color={GOLD}>Das Problem</Tag>
+          <h2 style={{fontSize:'clamp(28px,4vw,48px)',fontWeight:800,marginTop:16,letterSpacing:-1}}>
+            Erkennen Sie sich wieder?
+          </h2>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:20}}>
+          {problems.map((p, i) => (
+            <div key={i} style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(30px)',transition:`all .6s ease ${i*.12}s`,background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:28}}>
+              <div style={{fontSize:36,marginBottom:14}}>{p.icon}</div>
+              <h3 style={{fontSize:16,fontWeight:700,marginBottom:10,color:TEXT}}>{p.title}</h3>
+              <p style={{fontSize:14,color:MUTED,lineHeight:1.65}}>{p.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{textAlign:'center',marginTop:48,opacity:vis?1:0,transition:'all .6s ease .5s'}}>
+          <p style={{fontSize:18,color:TEXT,fontWeight:600}}>
+            Die gute Nachricht: <Gold>All das ist lösbar</Gold> — mit der richtigen Webstrategie.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Live Browser Mockup ─────────────────────────────── */
+const BrowserMockup = () => {
+  const [ref, vis] = useInView();
+  const [activeTab, setActiveTab] = useState(0);
+  const tabs = [
+    { label: 'Performance', color: '#22c55e' },
+    { label: 'SEO Score', color: ACCENT },
+    { label: 'Conversions', color: GOLD },
+  ];
+  const metrics = [
+    [
+      { label: 'Ladezeit', value: '0.8s', bar: 92, color: '#22c55e' },
+      { label: 'Core Web Vitals', value: '98/100', bar: 98, color: '#22c55e' },
+      { label: 'Mobile Score', value: '96/100', bar: 96, color: '#22c55e' },
+      { label: 'Desktop Score', value: '99/100', bar: 99, color: '#22c55e' },
+    ],
+    [
+      { label: 'On-Page SEO', value: '94%', bar: 94, color: ACCENT },
+      { label: 'Keyword-Dichte', value: '89%', bar: 89, color: ACCENT },
+      { label: 'Meta-Tags', value: '100%', bar: 100, color: ACCENT },
+      { label: 'Backlink-Profil', value: '78%', bar: 78, color: ACCENT },
+    ],
+    [
+      { label: 'Conversion Rate', value: '4.2%', bar: 84, color: GOLD },
+      { label: 'Bounce Rate', value: '22%', bar: 78, color: GOLD },
+      { label: 'Avg. Session', value: '3:45', bar: 75, color: GOLD },
+      { label: 'Lead-Qualität', value: '91%', bar: 91, color: GOLD },
+    ],
+  ];
+  return (
+    <section ref={ref} style={{padding:'100px 24px',background:'#060606'}}>
+      <div style={{maxWidth:1100,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:60}}>
+          <Tag>Live-Dashboard</Tag>
+          <h2 style={{fontSize:'clamp(28px,4vw,48px)',fontWeight:800,marginTop:16,letterSpacing:-1}}>
+            Messbare Ergebnisse,<br/>keine Versprechen
+          </h2>
+          <p style={{color:MUTED,marginTop:12,fontSize:16}}>So sehen echte Werte aus — direkt aus unserem Reporting-System</p>
+        </div>
+
+        {/* Browser chrome */}
+        <div style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(40px)',transition:'all .8s ease',background:'#111',border:`1px solid ${BORDER2}`,borderRadius:16,overflow:'hidden',boxShadow:'0 40px 80px rgba(0,0,0,.6)'}}>
+          {/* Browser bar */}
+          <div style={{background:'#1a1a1a',padding:'12px 20px',display:'flex',alignItems:'center',gap:12,borderBottom:`1px solid ${BORDER}`}}>
+            <div style={{display:'flex',gap:7}}>
+              {['#FF5F57','#FFBD2E','#28CA41'].map((c,i) => <div key={i} style={{width:12,height:12,borderRadius:'50%',background:c}}/>)}
+            </div>
+            <div style={{flex:1,background:'#0e0e0e',borderRadius:6,padding:'6px 16px',display:'flex',alignItems:'center',gap:8}}>
+              <span style={{color:'#22c55e',fontSize:12}}>🔒</span>
+              <span style={{color:MUTED,fontSize:13}}>analytics.goldenpost.de/ihr-projekt</span>
+            </div>
+          </div>
+          {/* Tab bar */}
+          <div style={{display:'flex',borderBottom:`1px solid ${BORDER}`,background:'#0f0f0f'}}>
+            {tabs.map((t,i) => (
+              <button key={i} onClick={() => setActiveTab(i)} style={{flex:1,padding:'12px',background:'none',border:'none',cursor:'pointer',color:activeTab===i?t.color:MUTED,fontSize:13,fontWeight:activeTab===i?700:400,borderBottom:activeTab===i?`2px solid ${t.color}`:'2px solid transparent',transition:'all .2s'}}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {/* Metrics */}
+          <div style={{padding:32}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:20}}>
+              {metrics[activeTab].map((m,i) => (
+                <div key={i} style={{background:CARD,borderRadius:12,padding:20,border:`1px solid ${BORDER}`}}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:12}}>
+                    <span style={{fontSize:13,color:MUTED}}>{m.label}</span>
+                    <span style={{fontSize:15,fontWeight:700,color:m.color}}>{m.value}</span>
+                  </div>
+                  <div style={{height:6,background:'#1a1a1a',borderRadius:3,overflow:'hidden'}}>
+                    <div style={{height:'100%',background:`linear-gradient(90deg,${m.color},${m.color}88)`,borderRadius:3,width:vis?`${m.bar}%`:'0%',transition:`width 1.2s ease ${i*.15}s`}}/>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{marginTop:24,padding:'16px 20px',background:`${ACCENT}08`,borderRadius:10,border:`1px solid ${ACCENT}20`,display:'flex',alignItems:'center',gap:12}}>
+              <span style={{fontSize:20}}>📈</span>
+              <span style={{fontSize:14,color:MUTED}}>
+                Alle Projekte werden <strong style={{color:TEXT}}>wöchentlich getrackt</strong> — Sie bekommen immer volle Transparenz über Ihre Ergebnisse.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Feature Grid ────────────────────────────────────── */
+const Features = () => {
+  const [ref, vis] = useInView();
+  const features = [
+    { icon:'⚡', title:'Blitzschnelle Performance', desc:'PageSpeed 95+ guaranteed. Optimierte Assets, modernes Hosting, CDN — Ihre Seite lädt in unter einer Sekunde.', tag:'Core Feature' },
+    { icon:'🎯', title:'Conversion-Optimierung', desc:'Jedes Element strategisch platziert. Headlines, CTAs, Trust-Signale — alles darauf ausgerichtet, Besucher in Leads zu verwandeln.', tag:'ROI-Driver' },
+    { icon:'🔍', title:'Technisches SEO', desc:'Sauber strukturierter Code, Schema.org Markup, XML Sitemaps, Core Web Vitals — Google liebt Ihre Seite.', tag:'Traffic' },
+    { icon:'📱', title:'Mobile-First Design', desc:'Keine Kompromisse beim Handy. Jedes Layout wird zuerst für Smartphones entworfen und dann für Desktop erweitert.', tag:'Must-Have' },
+    { icon:'🔐', title:'SSL & DSGVO', desc:'Sichere HTTPS-Verbindung, Cookie-Consent, Datenschutzerklärung und Impressum — alles rechtssicher implementiert.', tag:'Pflicht' },
+    { icon:'🛠️', title:'CMS Integration', desc:'WordPress, Webflow oder Custom-Build — Sie können Ihre Inhalte selbst pflegen, ohne Entwickler-Kenntnisse.', tag:'Flexibilität' },
+    { icon:'🌐', title:'Hosting & Wartung', desc:'Wir kümmern uns um Hosting, Updates und Sicherheit. Sie konzentrieren sich auf Ihr Business.', tag:'Full-Service' },
+    { icon:'📊', title:'Analytics & Tracking', desc:'Google Analytics 4, Search Console, Hotjar — vollständiges Tracking-Setup für datenbasierte Entscheidungen.', tag:'Transparenz' },
+  ];
+  return (
+    <section ref={ref} style={{padding:'100px 24px'}}>
+      <div style={{maxWidth:1100,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:60}}>
+          <Tag>Leistungsumfang</Tag>
+          <h2 style={{fontSize:'clamp(28px,4vw,48px)',fontWeight:800,marginTop:16,letterSpacing:-1}}>
+            Alles aus einer Hand
+          </h2>
+          <p style={{color:MUTED,marginTop:12,fontSize:16,maxWidth:520,margin:'12px auto 0'}}>Von der ersten Idee bis zum Launch und darüber hinaus — kein Feature fehlt</p>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(250px,1fr))',gap:18}}>
+          {features.map((f,i) => (
+            <div key={i} style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(30px)',transition:`all .5s ease ${i*.08}s`,background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24,position:'relative',overflow:'hidden',cursor:'default'}}>
+              <div style={{position:'absolute',top:12,right:12,background:`${ACCENT}15`,color:ACCENT,fontSize:10,fontWeight:700,padding:'3px 8px',borderRadius:99,letterSpacing:.5}}>{f.tag}</div>
+              <div style={{fontSize:32,marginBottom:14}}>{f.icon}</div>
+              <h3 style={{fontSize:15,fontWeight:700,marginBottom:8}}>{f.title}</h3>
+              <p style={{fontSize:13,color:MUTED,lineHeight:1.65}}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Before / After Visual ───────────────────────────── */
+const BeforeAfter = () => {
+  const [ref, vis] = useInView();
+  const [hover, setHover] = useState(false);
+  const cases = [
+    { name:'Thorn Immobilien', before:'3 Anfragen/Monat', after:'+180% Anfragen', desc:'Kompletter Website-Relaunch mit lokalem SEO und Conversion-Optimierung.' },
+    { name:'Dr. med. Müller', before:'Keine Online-Buchungen', after:'35 Buchungen/Woche', desc:'Neue Praxis-Website mit integriertem Buchungssystem und Google My Business.' },
+    { name:'Weber Consulting', before:'Seite 4 bei Google', after:'Platz 1 in 6 Wochen', desc:'Technisches SEO-Audit und umfassende On-Page-Optimierung.' },
+  ];
+  return (
+    <section ref={ref} style={{padding:'100px 24px',background:'#060606'}}>
+      <div style={{maxWidth:1100,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:60}}>
+          <Tag color={GOLD}>Case Studies</Tag>
+          <h2 style={{fontSize:'clamp(28px,4vw,48px)',fontWeight:800,marginTop:16,letterSpacing:-1}}>
+            Vorher vs. <Gold>Nachher</Gold>
+          </h2>
+          <p style={{color:MUTED,marginTop:12,fontSize:16}}>Echte Ergebnisse, echte Kunden — keine fiktiven Zahlen</p>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:24}}>
+          {cases.map((c,i) => (
+            <div key={i} style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(30px)',transition:`all .6s ease ${i*.15}s`,borderRadius:16,overflow:'hidden',border:`1px solid ${BORDER2}`}}>
+              <div style={{background:'#1a0a0a',padding:'20px 24px',borderBottom:`1px solid ${BORDER}`}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                  <span style={{fontSize:12,color:'#ef4444',fontWeight:600,textTransform:'uppercase',letterSpacing:.8}}>⬇ Vorher</span>
+                  <span style={{fontSize:12,color:MUTED}}>{c.name}</span>
+                </div>
+                <div style={{fontSize:20,fontWeight:700,color:'#ef4444',marginTop:8}}>{c.before}</div>
+              </div>
+              <div style={{background:`${ACCENT}08`,padding:'20px 24px',borderBottom:`1px solid ${BORDER}`}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                  <span style={{fontSize:12,color:'#22c55e',fontWeight:600,textTransform:'uppercase',letterSpacing:.8}}>⬆ Nachher</span>
+                </div>
+                <div style={{fontSize:24,fontWeight:800,color:'#22c55e',marginTop:8}}>{c.after}</div>
+              </div>
+              <div style={{background:CARD,padding:'20px 24px'}}>
+                <p style={{fontSize:13,color:MUTED,lineHeight:1.65}}>{c.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Process Roadmap ─────────────────────────────────── */
+const Roadmap = () => {
+  const [ref, vis] = useInView();
+  const steps = [
+    { n:'01', icon:'💬', title:'Strategiegespräch', desc:'Wir analysieren Ihre Ziele, Zielgruppe und Wettbewerber. Am Ende dieses Gesprächs wissen wir genau, welche Website Sie brauchen.', duration:'1 Stunde', deliverable:'Website-Strategie' },
+    { n:'02', icon:'🎨', title:'Konzept & Design', desc:'Auf Basis unserer Analyse erstellen wir ein maßgeschneidertes Design. Sie erhalten Wireframes und ein finales Design zur Freigabe.', duration:'5–7 Tage', deliverable:'Design-Mockups' },
+    { n:'03', icon:'⚙️', title:'Entwicklung', desc:'Ihr genehmigtes Design wird pixel-perfekt umgesetzt. Mit Responsiveness, Animationen, SEO-Struktur und Performance-Optimierung.', duration:'10–14 Tage', deliverable:'Fertige Website' },
+    { n:'04', icon:'🚀', title:'Launch & Betreuung', desc:'Go-Live, Analytics-Setup, Search Console Anbindung und erste SEO-Optimierungen. Danach: laufende Betreuung auf Wunsch.', duration:'1–2 Tage', deliverable:'Live-Website + Report' },
+  ];
+  return (
+    <section ref={ref} style={{padding:'100px 24px'}}>
+      <div style={{maxWidth:900,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:60}}>
+          <Tag>Prozess</Tag>
+          <h2 style={{fontSize:'clamp(28px,4vw,48px)',fontWeight:800,marginTop:16,letterSpacing:-1}}>
+            Von der Idee zum<br/>Launch in 3–4 Wochen
+          </h2>
+        </div>
+        <div style={{position:'relative'}}>
+          <div style={{position:'absolute',left:28,top:0,bottom:0,width:1,background:`linear-gradient(180deg,${ACCENT},${GOLD},${ACCENT}33)`,opacity:.4}}/>
+          {steps.map((s,i) => (
+            <div key={i} style={{opacity:vis?1:0,transform:vis?'translateX(0)':'translateX(-30px)',transition:`all .6s ease ${i*.18}s`,display:'flex',gap:28,marginBottom:40,position:'relative'}}>
+              <div style={{flexShrink:0,width:56,height:56,borderRadius:'50%',background:`linear-gradient(135deg,${ACCENT}33,${ACCENT}11)`,border:`2px solid ${ACCENT}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,zIndex:2}}>
+                {s.icon}
+              </div>
+              <div style={{flex:1,background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:24}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10,flexWrap:'wrap',gap:8}}>
+                  <div>
+                    <span style={{color:ACCENT,fontSize:11,fontWeight:700,letterSpacing:1,textTransform:'uppercase'}}>{s.n}</span>
+                    <h3 style={{fontSize:18,fontWeight:700,marginTop:2}}>{s.title}</h3>
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    <div style={{fontSize:12,color:MUTED}}>⏱ {s.duration}</div>
+                    <div style={{fontSize:12,color:GOLD,marginTop:2}}>📦 {s.deliverable}</div>
+                  </div>
+                </div>
+                <p style={{fontSize:14,color:MUTED,lineHeight:1.65}}>{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Portfolio / Showcase ───────────────────────────── */
+const Portfolio = () => {
+  const [ref, vis] = useInView();
+  const projects = [
+    { name:'Thorn Immobilien', category:'Immobilien', tags:['Design','SEO','CMS'], color:'#f59e0b', metrics:'+180% Anfragen', bg:'#1a1200' },
+    { name:'Dr. med. Müller', category:'Medizin', tags:['Booking-System','DSGVO','Mobile'], color:'#22c55e', metrics:'35 Buchungen/Wo', bg:'#001a0a' },
+    { name:'Weber Consulting', category:'B2B', tags:['Lead-Gen','SEO','Analytics'], color:ACCENT, metrics:'Platz 1 Google', bg:'#001a2a' },
+    { name:'FashionStore GmbH', category:'E-Commerce', tags:['Shop','Performance','UX'], color:'#e879f9', metrics:'3.2× Conversion', bg:'#1a001a' },
+  ];
+  return (
+    <section id="portfolio" ref={ref} style={{padding:'100px 24px',background:'#060606'}}>
+      <div style={{maxWidth:1100,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:60}}>
+          <Tag>Portfolio</Tag>
+          <h2 style={{fontSize:'clamp(28px,4vw,48px)',fontWeight:800,marginTop:16,letterSpacing:-1}}>
+            Projekte, die<br/><span style={{color:ACCENT}}>Ergebnisse liefern</span>
+          </h2>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:20}}>
+          {projects.map((p,i) => (
+            <div key={i} style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(30px)',transition:`all .6s ease ${i*.12}s`,background:p.bg,border:`1px solid ${BORDER2}`,borderRadius:20,overflow:'hidden',cursor:'pointer'}}>
+              {/* Mock browser window */}
+              <div style={{height:160,background:`${p.color}08`,position:'relative',borderBottom:`1px solid ${BORDER}`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <div style={{position:'absolute',top:12,left:12,display:'flex',gap:5}}>
+                  {['#FF5F57','#FFBD2E','#28CA41'].map((c,j) => <div key={j} style={{width:9,height:9,borderRadius:'50%',background:c}}/>)}
+                </div>
+                <div style={{fontSize:36,opacity:.4}}>{['🏠','🏥','💼','👗'][i]}</div>
+                <div style={{position:'absolute',bottom:12,right:12,background:`${p.color}22`,color:p.color,fontSize:11,fontWeight:700,padding:'4px 10px',borderRadius:99}}>
+                  {p.metrics}
+                </div>
+              </div>
+              <div style={{padding:20}}>
+                <div style={{fontSize:11,color:MUTED,textTransform:'uppercase',letterSpacing:.8,marginBottom:4}}>{p.category}</div>
+                <div style={{fontSize:16,fontWeight:700,marginBottom:12}}>{p.name}</div>
+                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                  {p.tags.map(t => <span key={t} style={{background:`${p.color}15`,color:p.color,fontSize:10,fontWeight:600,padding:'3px 8px',borderRadius:99}}>{t}</span>)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{textAlign:'center',marginTop:40,opacity:vis?1:0,transition:'all .6s ease .5s'}}>
+          <p style={{color:MUTED,fontSize:14}}>Mehr Projekte auf Anfrage verfügbar</p>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── SEO Section ─────────────────────────────────────── */
+const SEO = () => {
+  const [ref, vis] = useInView();
+  const checks = [
+    'Keyword-Recherche & Strategie',
+    'On-Page Optimierung (Titles, Metas, H-Tags)',
+    'Technisches SEO (Core Web Vitals, Schema)',
+    'Lokales SEO & Google My Business',
+    'Backlink-Strategie & Aufbau',
+    'Content-Optimierung',
+    'Google Search Console Setup',
+    'Monatliches SEO-Reporting',
+  ];
+  return (
+    <section ref={ref} style={{padding:'100px 24px'}}>
+      <div style={{maxWidth:1100,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:60,alignItems:'center'}}>
+        <div>
+          <Tag color={GOLD}>SEO-Optimierung</Tag>
+          <h2 style={{fontSize:'clamp(26px,4vw,44px)',fontWeight:800,marginTop:16,letterSpacing:-1,lineHeight:1.2}}>
+            Gefunden werden,<br/>bevor der<br/><Gold>Wettbewerb reagiert</Gold>
+          </h2>
+          <p style={{color:MUTED,marginTop:16,fontSize:15,lineHeight:1.7}}>
+            SEO ist kein Geheimnis — es ist eine Systematik. Wir implementieren bewährte Methoden, die nachhaltig Rankings aufbauen und qualifizierten Traffic generieren.
+          </p>
+          <div style={{marginTop:32}}>
+            <GoldBtn href="#contact">SEO-Analyse anfordern →</GoldBtn>
+          </div>
+        </div>
+        <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:20,padding:32}}>
+          <div style={{fontSize:14,fontWeight:600,color:MUTED,marginBottom:20,textTransform:'uppercase',letterSpacing:.8}}>Unser SEO-Paket enthält</div>
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            {checks.map((c,i) => (
+              <div key={i} style={{opacity:vis?1:0,transform:vis?'translateX(0)':'translateX(20px)',transition:`all .4s ease ${i*.07}s`,display:'flex',alignItems:'center',gap:12}}>
+                <div style={{width:22,height:22,borderRadius:'50%',background:`${ACCENT}20`,border:`1px solid ${ACCENT}`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                    <path d="M1 4l2.5 2.5L9 1" stroke={ACCENT} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span style={{fontSize:14,color:TEXT}}>{c}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Testimonials ────────────────────────────────────── */
+const Testimonials = () => {
+  const [ref, vis] = useInView();
+  const testimonials = [
+    { name:'Regina T.', role:'CEO, Thorn Immobilien', text:'Hannes und Jonas haben meine Erwartungen weit übertroffen. Die neue Website generiert dreimal so viele Anfragen wie vorher — und das schon im ersten Monat nach dem Launch.', stars:5, result:'+180% Anfragen' },
+    { name:'Dr. Klaus M.', role:'Arzt, Praxis München', text:'Das Team versteht nicht nur Design, sondern auch Business. Meine Patienten loben die neue Seite täglich, und die Online-Buchungen laufen fast von alleine.', stars:5, result:'35 Buchungen/Wo' },
+    { name:'Stefan W.', role:'Geschäftsführer, Weber Consulting', text:'In 6 Wochen von Seite 4 auf Platz 1 bei Google — ich dachte, das sei unmöglich. GoldenPost hat es bewiesen. Absolut professionell und effizient.', stars:5, result:'Platz 1 Google' },
+  ];
+  return (
+    <section ref={ref} style={{padding:'100px 24px',background:'#060606'}}>
+      <div style={{maxWidth:1100,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:60}}>
+          <Tag>Testimonials</Tag>
+          <h2 style={{fontSize:'clamp(28px,4vw,48px)',fontWeight:800,marginTop:16,letterSpacing:-1}}>
+            Was unsere Kunden sagen
+          </h2>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:20}}>
+          {testimonials.map((t,i) => (
+            <div key={i} style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(30px)',transition:`all .6s ease ${i*.15}s`,background:CARD,border:`1px solid ${BORDER2}`,borderRadius:20,padding:28,position:'relative'}}>
+              <div style={{position:'absolute',top:20,right:20,background:`${ACCENT}15`,color:ACCENT,fontSize:12,fontWeight:700,padding:'4px 10px',borderRadius:99}}>{t.result}</div>
+              <div style={{fontSize:22,color:GOLD,marginBottom:14}}>{'★'.repeat(t.stars)}</div>
+              <p style={{fontSize:15,lineHeight:1.7,color:'#d0cdc8',marginBottom:20,fontStyle:'italic'}}>"{t.text}"</p>
+              <div style={{display:'flex',alignItems:'center',gap:12}}>
+                <div style={{width:42,height:42,borderRadius:'50%',background:`linear-gradient(135deg,${ACCENT},${ACCENT}88)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:700,color:'#000'}}>
+                  {t.name[0]}
+                </div>
+                <div>
+                  <div style={{fontSize:14,fontWeight:700}}>{t.name}</div>
+                  <div style={{fontSize:12,color:MUTED}}>{t.role}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── FAQ ─────────────────────────────────────────────── */
+const FAQ = () => {
+  const [ref, vis] = useInView();
+  const [open, setOpen] = useState(null);
+  const faqs = [
+    { q:'Was kostet eine neue Website?', a:'Unsere Webdesign-Projekte starten ab 1.500 € für eine professionelle Business-Website. Der genaue Preis hängt von Umfang, Funktionen und Komplexität ab. Nach einem kostenlosen Strategiegespräch erstellen wir ein individuelles Angebot — ohne versteckte Kosten.' },
+    { q:'Wie lange dauert die Umsetzung?', a:'Im Durchschnitt 3–4 Wochen vom ersten Gespräch bis zum Launch. Einfachere Projekte können auch in 2 Wochen fertiggestellt werden. Wichtig: Geschwindigkeit hängt auch davon ab, wie schnell wir Feedback und Materialien von Ihnen erhalten.' },
+    { q:'Kann ich die Website später selbst bearbeiten?', a:'Ja, absolut. Wir bauen alle Websites mit einem CMS (z.B. WordPress oder Webflow), über das Sie Texte, Bilder und Inhalte selbst pflegen können — ohne Programmierkenntnisse. Wir schulen Sie auch im Umgang damit.' },
+    { q:'Kümmert ihr euch auch ums Hosting?', a:'Ja. Wir bieten Full-Service-Hosting inklusive SSL-Zertifikat, automatischen Backups und regelmäßigen Sicherheitsupdates. Alternativ richten wir Ihre Seite auch auf Ihrem bestehenden Hosting ein.' },
+    { q:'Was ist inklusive beim SEO-Paket?', a:'Keyword-Analyse, technisches SEO-Audit, On-Page-Optimierung aller Seiten, Google Search Console & Analytics Setup, Lokales SEO und monatliches Reporting. Backlink-Aufbau und Content-Marketing können als Add-on gebucht werden.' },
+  ];
+  return (
+    <section ref={ref} style={{padding:'100px 24px'}}>
+      <div style={{maxWidth:720,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:60}}>
+          <Tag>FAQ</Tag>
+          <h2 style={{fontSize:'clamp(28px,4vw,48px)',fontWeight:800,marginTop:16,letterSpacing:-1}}>
+            Häufige Fragen
+          </h2>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {faqs.map((f,i) => (
+            <div key={i} style={{opacity:vis?1:0,transition:`all .5s ease ${i*.1}s`,background:CARD,border:`1px solid ${open===i?ACCENT:BORDER}`,borderRadius:14,overflow:'hidden',transition:`border-color .2s, opacity .5s ease ${i*.1}s`}}>
+              <button onClick={() => setOpen(open===i?null:i)} style={{width:'100%',padding:'20px 24px',background:'none',border:'none',cursor:'pointer',display:'flex',justifyContent:'space-between',alignItems:'center',gap:16}}>
+                <span style={{fontSize:15,fontWeight:600,color:TEXT,textAlign:'left'}}>{f.q}</span>
+                <span style={{color:ACCENT,fontSize:20,flexShrink:0,transform:open===i?'rotate(45deg)':'rotate(0)',transition:'transform .2s'}}>+</span>
+              </button>
+              {open===i && <div style={{padding:'0 24px 20px',color:MUTED,fontSize:14,lineHeight:1.75,borderTop:`1px solid ${BORDER}`}}><br/>{f.a}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── CTA ─────────────────────────────────────────────── */
+const CTA = () => {
+  const [ref, vis] = useInView();
+  return (
+    <section id="contact" ref={ref} style={{padding:'100px 24px',background:'#060606',position:'relative',overflow:'hidden'}}>
+      <div style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 800px 400px at 50% 50%,${ACCENT}08 0%,transparent 70%)`}}/>
+      <div style={{maxWidth:700,margin:'0 auto',textAlign:'center',position:'relative',zIndex:2}}>
+        <div style={{opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(20px)',transition:'all .8s ease'}}>
+          <Tag>Kostenlos & unverbindlich</Tag>
+          <h2 style={{fontSize:'clamp(30px,5vw,56px)',fontWeight:800,marginTop:20,letterSpacing:-1.5,lineHeight:1.15}}>
+            Bereit für eine<br/><span style={{color:ACCENT}}>Website, die verkauft?</span>
+          </h2>
+          <p style={{color:MUTED,marginTop:20,fontSize:17,lineHeight:1.7,maxWidth:500,margin:'20px auto 0'}}>
+            Buchen Sie Ihre kostenlose Website-Analyse. Wir zeigen Ihnen konkret, was Ihre aktuelle Seite kostet — und wie wir das ändern.
+          </p>
+          <div style={{marginTop:40,display:'flex',gap:16,justifyContent:'center',flexWrap:'wrap'}}>
+            <GoldBtn href="mailto:info@goldenpost.de?subject=Kostenlose Website-Analyse" style={{fontSize:16,padding:'16px 40px'}}>
+              Kostenlose Analyse sichern →
+            </GoldBtn>
+          </div>
+          <div style={{marginTop:24,display:'flex',gap:24,justifyContent:'center',flexWrap:'wrap'}}>
+            {['✓ Kostenlos & unverbindlich','✓ Antwort innerhalb 24h','✓ Kein Vertrag nötig'].map(t => (
+              <span key={t} style={{fontSize:13,color:MUTED}}>{t}</span>
+            ))}
+          </div>
+          {/* Risk reversal */}
+          <div style={{marginTop:48,padding:'24px',background:`${ACCENT}08`,border:`1px solid ${ACCENT}20`,borderRadius:16}}>
+            <p style={{fontSize:15,color:TEXT,fontWeight:600}}>🛡️ Unsere Garantie</p>
+            <p style={{fontSize:14,color:MUTED,marginTop:8,lineHeight:1.65}}>
+              Wenn Sie nach dem Launch in 90 Tagen nicht mehr Anfragen als vorher erhalten, überarbeiten wir Ihre Website <strong style={{color:TEXT}}>kostenlos</strong>. Kein Wenn und Aber.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ── Footer ──────────────────────────────────────────── */
+const Footer = () => (
+  <footer style={{padding:'48px 24px 32px',borderTop:`1px solid ${BORDER}`}}>
+    <div style={{maxWidth:1100,margin:'0 auto'}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:40,marginBottom:40}}>
+        <div>
+          <div style={{fontWeight:800,fontSize:18,marginBottom:12}}>Golden<Gold>Post</Gold></div>
+          <p style={{fontSize:13,color:MUTED,lineHeight:1.7}}>Premium Marketing-Agentur für Content, Social Media & Webdesign.</p>
+        </div>
+        <div>
+          <div style={{fontWeight:700,fontSize:13,color:MUTED,textTransform:'uppercase',letterSpacing:.8,marginBottom:12}}>Leistungen</div>
+          {[['Content Creation','/content/'],['Social Media','/social-media/'],['Webdesign & SEO','/webdesign/']].map(([l,h]) => (
+            <a key={l} href={h} style={{display:'block',fontSize:14,color:TEXT,textDecoration:'none',marginBottom:8,opacity:.7}}>{l}</a>
+          ))}
+        </div>
+        <div>
+          <div style={{fontWeight:700,fontSize:13,color:MUTED,textTransform:'uppercase',letterSpacing:.8,marginBottom:12}}>Kontakt</div>
+          <a href="mailto:info@goldenpost.de" style={{fontSize:14,color:GOLD,textDecoration:'none'}}>info@goldenpost.de</a>
+        </div>
+      </div>
+      <div style={{borderTop:`1px solid ${BORDER}`,paddingTop:24,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+        <span style={{fontSize:12,color:MUTED}}>© 2024 GoldenPost. Alle Rechte vorbehalten.</span>
+        <div style={{display:'flex',gap:20}}>
+          {['Impressum','Datenschutz'].map(l => <a key={l} href="#" style={{fontSize:12,color:MUTED,textDecoration:'none'}}>{l}</a>)}
+        </div>
+      </div>
+    </div>
+  </footer>
+);
+
+/* ── App ─────────────────────────────────────────────── */
+const App = () => (
+  <div id="scroll" className="no-scrollbar" style={{height:'100vh',overflowY:'auto',overflowX:'hidden'}}>
+    <Nav/>
+    <Hero/>
+    <Pain/>
+    <BrowserMockup/>
+    <Features/>
+    <BeforeAfter/>
+    <Roadmap/>
+    <Portfolio/>
+    <SEO/>
+    <Testimonials/>
+    <FAQ/>
+    <CTA/>
+    <Footer/>
+  </div>
+);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

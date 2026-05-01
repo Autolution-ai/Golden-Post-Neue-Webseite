@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Social Media Management — GoldenPost</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:#080808;-webkit-font-smoothing:antialiased}
+    #root{height:100%}
+    #scroll{height:100vh;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth}
+    #scroll::-webkit-scrollbar{width:4px}
+    #scroll::-webkit-scrollbar-track{background:#080808}
+    #scroll::-webkit-scrollbar-thumb{background:#2A2A2A;border-radius:2px}
+    .no-sb{scrollbar-width:none;-ms-overflow-style:none}
+    .no-sb::-webkit-scrollbar{display:none}
+    @keyframes gridMove{0%{transform:translateY(0)}100%{transform:translateY(64px)}}
+    @keyframes pulse{0%,100%{box-shadow:0 0 32px rgba(167,139,250,.38)}50%{box-shadow:0 0 56px rgba(167,139,250,.62)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    @keyframes counterUp{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+    @keyframes barGrow{from{width:0}to{width:var(--w)}}
+    body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");opacity:.025;pointer-events:none;z-index:9999}
+  </style>
+</head>
+<body><div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+const ACCENT='#A78BFA'; const GOLD='#C8A96E';
+
+const useInView=(t=.15)=>{const ref=useRef(null);const [vis,setVis]=useState(false);useEffect(()=>{const el=document.getElementById('scroll');const c=()=>{if(!ref.current)return;if(ref.current.getBoundingClientRect().top<window.innerHeight*(1-t))setVis(true);};el&&el.addEventListener('scroll',c);c();return()=>el&&el.removeEventListener('scroll',c);},[]);return[ref,vis];};
+const Tag=({children,color=ACCENT})=>(<div style={{display:'inline-flex',alignItems:'center',gap:7,background:`${color}18`,border:`1px solid ${color}44`,borderRadius:9999,padding:'5px 14px',marginBottom:24}}><div style={{width:5,height:5,borderRadius:'50%',background:color,boxShadow:`0 0 8px ${color}`}}/><span style={{fontFamily:'Inter,sans-serif',fontSize:10,fontWeight:600,letterSpacing:'.13em',textTransform:'uppercase',color}}>{children}</span></div>);
+const GoldBtn=({children,href,big,outline,color=GOLD})=>{const [h,setH]=useState(false);const b={fontFamily:'Inter,sans-serif',fontWeight:600,borderRadius:10,cursor:'pointer',transition:'all 200ms',display:'inline-block',textDecoration:'none',textAlign:'center'};return outline?<a href={href||'#'} style={{...b,fontSize:big?15:13,padding:big?'15px 38px':'9px 22px',background:h?`${color}18`:'transparent',border:`1px solid ${color}55`,color}} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}>{children}</a>:<a href={href||'#'} style={{...b,fontSize:big?15:13,padding:big?'15px 38px':'9px 22px',background:'linear-gradient(135deg,#C8A96E,#E2C990,#A07840)',color:'#080808',boxShadow:h?'0 0 40px rgba(200,169,110,.55)':'0 0 24px rgba(200,169,110,.3)',animation:'none'}} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}>{children}</a>;};
+
+/* Nav */
+const Nav=()=>{const [sc,setSc]=useState(false);useEffect(()=>{const el=document.getElementById('scroll');const h=()=>setSc(el.scrollTop>40);el&&el.addEventListener('scroll',h);return()=>el&&el.removeEventListener('scroll',h);},[]);return(<nav style={{position:'fixed',top:0,left:0,right:0,height:68,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 48px',zIndex:1000,background:sc?'rgba(8,8,8,.94)':'transparent',backdropFilter:sc?'blur(20px)':'none',borderBottom:sc?'1px solid #1E1E1E':'1px solid transparent',transition:'all 300ms'}}><a href="/" style={{display:'flex',alignItems:'center',gap:10,textDecoration:'none'}}><img src="../assets/logo.png" width={30} height={30} style={{borderRadius:5}} alt="GP"/><span style={{fontFamily:'Syne,sans-serif',fontSize:14,fontWeight:700,color:'#F0EDE8'}}>GOLDEN POST</span></a><div style={{display:'flex',gap:6}}>{[{l:'Content',h:'/content/'},{l:'Social Media',h:'/social-media/',active:true},{l:'Webdesign',h:'/webdesign/'}].map(({l,h,active})=>(<a key={l} href={h} style={{fontFamily:'Inter,sans-serif',fontSize:12,fontWeight:500,color:active?ACCENT:'#555',textDecoration:'none',padding:'5px 12px',borderRadius:6,background:active?`${ACCENT}14`:'transparent',border:active?`1px solid ${ACCENT}44`:'1px solid transparent',transition:'all 200ms'}}>{l}</a>))}</div><GoldBtn href="#cta">Gespräch buchen</GoldBtn></nav>);};
+
+/* Hero */
+const Hero=()=>{
+  const [vis,setVis]=useState(false);
+  useEffect(()=>{setTimeout(()=>setVis(true),80);},[]);
+  const platforms=[
+    {name:'Instagram',color:'#E1306C',icon:'IG'},
+    {name:'TikTok',color:'#FF0050',icon:'TT'},
+    {name:'LinkedIn',color:'#0A66C2',icon:'IN'},
+    {name:'YouTube',color:'#FF0000',icon:'YT'},
+    {name:'Facebook',color:'#1877F2',icon:'FB'},
+  ];
+  return(
+    <section style={{position:'relative',minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'120px 48px 80px',overflow:'hidden'}}>
+      <div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(#1E1E1E 1px,transparent 1px),linear-gradient(90deg,#1E1E1E 1px,transparent 1px)',backgroundSize:'64px 64px',opacity:.25,animation:'gridMove 24s linear infinite'}}/>
+      <div style={{position:'absolute',top:'-10%',left:'50%',transform:'translateX(-50%)',width:1000,height:700,background:'radial-gradient(ellipse,#A78BFA12,transparent 65%)',pointerEvents:'none'}}/>
+      <div style={{position:'relative',maxWidth:900,textAlign:'center',opacity:vis?1:0,transform:vis?'translateY(0)':'translateY(28px)',transition:'opacity 700ms,transform 700ms cubic-bezier(.4,0,.2,1)'}}>
+        <Tag color={ACCENT}>Social Media Management · Vollständig übernommen</Tag>
+        <h1 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(40px,6.5vw,86px)',fontWeight:700,color:'#F0EDE8',lineHeight:1.02,letterSpacing:'-.04em',marginBottom:24}}>
+          Dein Social Media.<br/><span style={{color:ACCENT}}>Vollständig verwaltet.</span>
+        </h1>
+        <p style={{fontFamily:'Inter,sans-serif',fontSize:18,color:'#666',lineHeight:1.65,maxWidth:540,margin:'0 auto 52px'}}>
+          Wir übernehmen Strategie, Content-Planung, Posting, Community Management und Reporting – komplett. Du konzentrierst dich auf dein Business.
+        </p>
+        <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap',marginBottom:52}}>
+          <GoldBtn href="#cta" big>Kostenloses Erstgespräch</GoldBtn>
+          <GoldBtn href="#leistungen" big outline color={ACCENT}>Was wir übernehmen</GoldBtn>
+        </div>
+        {/* Platform icons */}
+        <div style={{display:'flex',gap:12,justifyContent:'center',alignItems:'center',flexWrap:'wrap'}}>
+          <span style={{fontFamily:'Inter,sans-serif',fontSize:11,color:'#333',letterSpacing:'.06em',textTransform:'uppercase'}}>Aktiv auf</span>
+          {platforms.map(p=>(
+            <div key={p.name} title={p.name} style={{width:36,height:36,borderRadius:9,background:p.color+'22',border:`1px solid ${p.color}44`,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 200ms',cursor:'default'}}
+              onMouseEnter={e=>{e.currentTarget.style.background=p.color+'33';e.currentTarget.style.transform='scale(1.1)';}} onMouseLeave={e=>{e.currentTarget.style.background=p.color+'22';e.currentTarget.style.transform='scale(1)';}}>
+              <span style={{fontFamily:'Syne,sans-serif',fontSize:9,fontWeight:800,color:p.color}}>{p.icon}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* Services Grid */
+const ServiceGrid=()=>{
+  const [ref,vis]=useInView();
+  const items=[
+    {icon:'🎯',title:'Kanal-Strategie',desc:'Positionierung, Zielgruppe, Tonality, Content-Mix – alles strategisch durchdacht.'},
+    {icon:'📅',title:'Content-Planung',desc:'Monatsplanung, Redaktionskalender, Abstimmung mit dir vor der Umsetzung.'},
+    {icon:'📲',title:'Posting & Scheduling',desc:'Wir posten zum optimalen Zeitpunkt, mit den richtigen Captions und Hashtags.'},
+    {icon:'💬',title:'Community Management',desc:'Kommentare, DMs, Interaktionen – wir pflegen deine Community täglich.'},
+    {icon:'📈',title:'Analytics & Reporting',desc:'Monatliches Performance-Reporting mit klaren Zahlen und nächsten Schritten.'},
+    {icon:'🔄',title:'Kontinuierliche Optimierung',desc:'A/B-Tests, Format-Experimente, Trendnutzung – wir skalieren was funktioniert.'},
+  ];
+  return(
+    <section id="leistungen" style={{padding:'100px 48px',background:'#0A0A0A',borderTop:'1px solid #1E1E1E'}}>
+      <div style={{maxWidth:1080,margin:'0 auto'}}>
+        <div ref={ref} style={{textAlign:'center',marginBottom:56,opacity:vis?1:0,transform:vis?'none':'translateY(20px)',transition:'all 600ms'}}>
+          <Tag color={ACCENT}>Was wir übernehmen</Tag>
+          <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(28px,4vw,52px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em',lineHeight:1.1}}>
+            Von Strategie bis Analyse –<br/><span style={{color:ACCENT}}>wir machen alles.</span>
+          </h2>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
+          {items.map((it,i)=>(
+            <div key={i} style={{background:'#0D0D0D',border:'1px solid #1E1E1E',borderRadius:14,padding:'28px 24px',transition:'all 250ms',opacity:vis?1:0,transform:vis?'none':'translateY(20px)',transitionDelay:`${i*80}ms`}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=ACCENT+'44';e.currentTarget.style.background=ACCENT+'06';}} onMouseLeave={e=>{e.currentTarget.style.borderColor='#1E1E1E';e.currentTarget.style.background='#0D0D0D';}}>
+              <div style={{fontSize:28,marginBottom:14}}>{it.icon}</div>
+              <h3 style={{fontFamily:'Syne,sans-serif',fontSize:16,fontWeight:700,color:'#F0EDE8',marginBottom:8}}>{it.title}</h3>
+              <p style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#555',lineHeight:1.7}}>{it.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* Analytics Dashboard Mockup */
+const AnalyticsMockup=()=>{
+  const [ref,vis]=useInView(.1);
+  const bars=[{label:'Reichweite',val:87,color:ACCENT},{label:'Engagement',val:62,color:'#60A5FA'},{label:'Klicks',val:74,color:GOLD},{label:'Followers',val:91,color:'#34D399'}];
+  const stats=[{n:'3.2M',l:'Ø Reichweite/Monat'},{n:'+340%',l:'Follower-Wachstum'},{n:'6.8%',l:'Ø Engagement-Rate'},{n:'48h',l:'Reaktionszeit'}];
+  return(
+    <section style={{padding:'100px 48px',background:'#080808',borderTop:'1px solid #1E1E1E'}}>
+      <div style={{maxWidth:1060,margin:'0 auto'}}>
+        <div ref={ref} style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:64,alignItems:'center'}}>
+          <div style={{opacity:vis?1:0,transform:vis?'none':'translateY(24px)',transition:'all 600ms'}}>
+            <Tag color={ACCENT}>Echte Ergebnisse</Tag>
+            <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(26px,3.5vw,46px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em',lineHeight:1.15,marginBottom:20}}>
+              Zahlen, die<br/><span style={{color:ACCENT}}>für sich sprechen.</span>
+            </h2>
+            <p style={{fontFamily:'Inter,sans-serif',fontSize:14,color:'#555',lineHeight:1.8,marginBottom:32}}>
+              Wir liefern jeden Monat ein klares Performance-Reporting. Du weißt immer genau, was dein Investment bringt.
+            </p>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+              {stats.map((s,i)=>(
+                <div key={i} style={{background:'#0D0D0D',border:'1px solid #1E1E1E',borderRadius:12,padding:'18px 16px'}}>
+                  <div style={{fontFamily:'Syne,sans-serif',fontSize:26,fontWeight:700,color:ACCENT,letterSpacing:'-.03em',lineHeight:1}}>{s.n}</div>
+                  <div style={{fontFamily:'Inter,sans-serif',fontSize:11,color:'#444',marginTop:6}}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Dashboard mockup */}
+          <div style={{background:'#0D0D0D',border:'1px solid #2A2A2A',borderRadius:20,padding:'28px',opacity:vis?1:0,transition:'all 700ms 150ms'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
+              <div>
+                <div style={{fontFamily:'Syne,sans-serif',fontSize:14,fontWeight:700,color:'#F0EDE8'}}>Performance Dashboard</div>
+                <div style={{fontFamily:'Inter,sans-serif',fontSize:10,color:'#444',marginTop:2}}>April 2026 · GoldenPost Analytics</div>
+              </div>
+              <div style={{background:ACCENT+'22',border:`1px solid ${ACCENT}44`,borderRadius:6,padding:'4px 10px'}}><span style={{fontFamily:'Inter,sans-serif',fontSize:10,fontWeight:600,color:ACCENT}}>Live</span></div>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              {bars.map((b,i)=>(
+                <div key={i}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                    <span style={{fontFamily:'Inter,sans-serif',fontSize:11,color:'#666'}}>{b.label}</span>
+                    <span style={{fontFamily:'Syne,sans-serif',fontSize:11,fontWeight:700,color:b.color}}>{b.val}%</span>
+                  </div>
+                  <div style={{height:6,background:'#1A1A1A',borderRadius:3,overflow:'hidden'}}>
+                    <div style={{height:'100%',width:vis?`${b.val}%`:'0%',background:b.color,borderRadius:3,transition:`width 1000ms ${i*120}ms cubic-bezier(.4,0,.2,1)`}}/>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{marginTop:24,display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
+              {[{l:'Posts',v:'48'},{ l:'Stories',v:'96'},{l:'Reels',v:'12'}].map(({l,v})=>(
+                <div key={l} style={{background:'#1A1A1A',borderRadius:8,padding:'10px',textAlign:'center'}}>
+                  <div style={{fontFamily:'Syne,sans-serif',fontSize:18,fontWeight:700,color:'#F0EDE8'}}>{v}</div>
+                  <div style={{fontFamily:'Inter,sans-serif',fontSize:9,color:'#444',marginTop:2}}>{l} diesen Monat</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* Process */
+const steps=[
+  {num:'01',short:'Onboarding',label:'Analyse & Onboarding',desc:'Wir nehmen uns Zeit, dein Unternehmen wirklich zu verstehen. Markenidentität, Zielgruppe, Wettbewerber, bisherige Performance – alles wird analysiert.',bullets:['Marken-Audit','Zielgruppenprofile','Wettbewerberanalyse','Kanal-Bewertung']},
+  {num:'02',short:'Strategie',label:'Strategie & Konzept',desc:'Auf Basis der Analyse entwickeln wir eine maßgeschneiderte Content-Strategie: Was, wann, wo und wie gepostet wird – und warum.',bullets:['Positionierungsstrategie','Content-Säulen & Formate','Posting-Frequenz','Redaktionsplan Monat 1']},
+  {num:'03',short:'Umsetzung',label:'Umsetzung & Posting',desc:'Unser Team produziert und postet deinen Content – pünktlich, qualitativ hochwertig und mit optimierten Captions. Du gibst frei, wir machen.',bullets:['Content-Produktion','Scheduling & Posting','Caption & Hashtag-Optimierung','Community-Antworten']},
+  {num:'04',short:'Wachstum',label:'Optimierung & Skalierung',desc:'Monatliches Reporting mit klaren KPIs. Wir analysieren, was funktioniert, und skalieren es. Was nicht funktioniert, wird optimiert.',bullets:['Performance-Reporting','A/B-Tests','Strategie-Anpassung','Skalierung erfolgreicher Formate']},
+];
+
+const ProcessSection=()=>{
+  const [active,setActive]=useState(0);const [vis,setVis]=useState(false);const ref=useRef(null);
+  useEffect(()=>{const el=document.getElementById('scroll');const c=()=>{if(ref.current&&ref.current.getBoundingClientRect().top<window.innerHeight*.8)setVis(true);};el&&el.addEventListener('scroll',c);c();return()=>el&&el.removeEventListener('scroll',c);},[]);
+  return(
+    <section ref={ref} style={{padding:'120px 48px',background:'#0A0A0A',borderTop:'1px solid #1E1E1E'}}>
+      <div style={{maxWidth:1100,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:72,opacity:vis?1:0,transition:'all 600ms'}}>
+          <Tag color={ACCENT}>Roadmap der Zusammenarbeit</Tag>
+          <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(28px,4vw,52px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em',lineHeight:1.1}}>Wie wir dein Social Media<br/><span style={{color:ACCENT}}>zum Wachstumsmotor machen.</span></h2>
+        </div>
+        <div style={{position:'relative',display:'flex',marginBottom:48}}>
+          <div style={{position:'absolute',top:24,left:'10%',right:'10%',height:2,background:'#1E1E1E',zIndex:0}}/>
+          <div style={{position:'absolute',top:24,left:'10%',height:2,background:`linear-gradient(90deg,${ACCENT},${ACCENT}88)`,width:`${(active/(steps.length-1))*80}%`,zIndex:1,transition:'width 500ms'}}/>
+          <div style={{display:'flex',width:'100%',position:'relative',zIndex:2}}>
+            {steps.map((s,i)=>(
+              <div key={i} onClick={()=>setActive(i)} style={{flex:1,textAlign:'center',cursor:'pointer',padding:'0 4px'}}>
+                <div style={{width:48,height:48,borderRadius:'50%',margin:'0 auto 10px',background:i<=active?`linear-gradient(135deg,${ACCENT},#7C3AED)`:'#111',border:`2px solid ${i<=active?ACCENT:'#2A2A2A'}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Syne,sans-serif',fontSize:13,fontWeight:700,color:i<=active?'#FFF':'#555',transition:'all 300ms',boxShadow:i===active?`0 0 20px ${ACCENT}55`:'none',opacity:vis?1:0,transitionDelay:`${i*80}ms`}}>
+                  {i<active?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFF" strokeWidth="2.5"><polyline points="20,6 9,17 4,12"/></svg>:s.num}
+                </div>
+                <div style={{fontFamily:'Inter,sans-serif',fontSize:10,fontWeight:600,textTransform:'uppercase',letterSpacing:'.06em',color:i===active?'#F0EDE8':'#333'}}>{s.short}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{background:'#111',border:`1px solid ${ACCENT}44`,borderRadius:20,padding:'44px 48px'}}>
+          <div style={{display:'flex',gap:48,flexWrap:'wrap',alignItems:'flex-start'}}>
+            <div style={{flex:1,minWidth:260}}>
+              <div style={{fontFamily:'Syne,sans-serif',fontSize:52,fontWeight:700,color:`${ACCENT}22`,lineHeight:1,marginBottom:8}}>{steps[active].num}</div>
+              <h3 style={{fontFamily:'Syne,sans-serif',fontSize:26,fontWeight:700,color:'#F0EDE8',letterSpacing:'-.02em',lineHeight:1.2,marginBottom:14}}>{steps[active].label}</h3>
+              <p style={{fontFamily:'Inter,sans-serif',fontSize:14,color:'#666',lineHeight:1.8}}>{steps[active].desc}</p>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,minWidth:260}}>
+              {steps[active].bullets.map((b,i)=>(
+                <div key={i} style={{background:'#1A1A1A',border:'1px solid #2A2A2A',borderRadius:10,padding:'14px 16px',display:'flex',alignItems:'center',gap:10}}>
+                  <div style={{width:6,height:6,borderRadius:'50%',background:ACCENT,flexShrink:0}}/><span style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#777'}}>{b}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {active<steps.length-1&&(<div style={{marginTop:28,display:'flex',justifyContent:'flex-end'}}><button onClick={()=>setActive(a=>a+1)} style={{display:'flex',alignItems:'center',gap:8,background:'transparent',border:'1px solid #2A2A2A',borderRadius:8,padding:'8px 20px',cursor:'pointer',color:'#555',fontFamily:'Inter,sans-serif',fontSize:13,transition:'all 200ms'}} onMouseEnter={e=>{e.currentTarget.style.borderColor=ACCENT;e.currentTarget.style.color=ACCENT;}} onMouseLeave={e=>{e.currentTarget.style.borderColor='#2A2A2A';e.currentTarget.style.color='#555';}}>Nächster Schritt <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="9,18 15,12 9,6"/></svg></button></div>)}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* Comparison */
+const ComparisonSection=()=>{
+  const [hovRow,setHovRow]=useState(null);const [ref,vis]=useInView();
+  const rows=[
+    {label:'Verfügbarkeit',intern:'Urlaub, Krankheit, Ausfall',agency:'Immer. 365 Tage.',win:'gp'},
+    {label:'Plattform-Know-how',intern:'1–2 Plattformen',agency:'Alle 5 Plattformen',win:'gp'},
+    {label:'Strategieerfahrung',intern:'Allgemein, begrenzt',agency:'50+ KMU-Projekte',win:'gp'},
+    {label:'Content-Volumen',intern:'4–8 Posts/Monat',agency:'30–50 Posts/Monat',win:'gp'},
+    {label:'Ausfallrisiko',intern:'Hoch (Einzelperson)',agency:'Null (ganzes Team)',win:'gp'},
+    {label:'Reporting & KPIs',intern:'Kaum vorhanden',agency:'Monatliches Dashboard',win:'gp'},
+  ];
+  return(
+    <section style={{padding:'100px 48px',background:'#080808',borderTop:'1px solid #1E1E1E'}}>
+      <div style={{maxWidth:900,margin:'0 auto'}}>
+        <div ref={ref} style={{textAlign:'center',marginBottom:56,opacity:vis?1:0,transition:'all 600ms'}}>
+          <Tag color={ACCENT}>Der Vergleich</Tag>
+          <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(26px,3.5vw,48px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em',lineHeight:1.1}}>Interne Stelle vs.<br/><span style={{color:ACCENT}}>GoldenPost</span></h2>
+        </div>
+        <div style={{background:'#0D0D0D',border:'1px solid #2A2A2A',borderRadius:20,overflow:'hidden',opacity:vis?1:0,transition:'all 700ms 150ms'}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',borderBottom:'1px solid #2A2A2A'}}>
+            <div style={{padding:'14px 22px'}}/>
+            <div style={{padding:'14px 22px',borderLeft:'1px solid #2A2A2A',textAlign:'center'}}><span style={{fontFamily:'Inter,sans-serif',fontSize:11,fontWeight:600,color:'#444',letterSpacing:'.06em',textTransform:'uppercase'}}>Interne Stelle</span></div>
+            <div style={{padding:'14px 22px',borderLeft:`1px solid ${ACCENT}44`,textAlign:'center',background:`${ACCENT}08`}}><span style={{fontFamily:'Syne,sans-serif',fontSize:12,fontWeight:700,color:ACCENT}}>GoldenPost</span></div>
+          </div>
+          {rows.map((row,i)=>(
+            <div key={i} onMouseEnter={()=>setHovRow(i)} onMouseLeave={()=>setHovRow(null)} style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',borderBottom:i<rows.length-1?'1px solid #1A1A1A':'none',background:hovRow===i?'#141414':'transparent',transition:'background 150ms'}}>
+              <div style={{padding:'16px 22px',fontFamily:'Inter,sans-serif',fontSize:12,fontWeight:500,color:'#888'}}>{row.label}</div>
+              <div style={{padding:'16px 22px',borderLeft:'1px solid #1A1A1A',textAlign:'center'}}><span style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#444'}}>{row.intern}</span></div>
+              <div style={{padding:'16px 22px',borderLeft:`1px solid ${ACCENT}22`,textAlign:'center',background:`${ACCENT}05`,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                <div style={{width:14,height:14,borderRadius:'50%',background:'#34D39722',border:'1px solid #34D39755',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="3"><polyline points="20,6 9,17 4,12"/></svg>
+                </div>
+                <span style={{fontFamily:'Inter,sans-serif',fontSize:12,color:ACCENT,fontWeight:500}}>{row.agency}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* Testimonials */
+const testimonials=[
+  {name:'Thomas M.',company:'Eisbuben Manufaktur',result:'3.2M Aufrufe',text:'"In 4 Monaten 3,2 Millionen Aufrufe. GoldenPost hat unsere Social Media komplett transformiert."',tag:'Brand Awareness'},
+  {name:'David K.',company:'ITA Engineering',result:'350 Bewerbungen',text:'"350 qualifizierte Bewerbungen in 60 Tagen. Unser Recruiting-Problem ist gelöst – danke GoldenPost."',tag:'Recruiting'},
+  {name:'Leonard B.',company:'raumton GmbH',result:'12 Neukunden',text:'"12 Neukunden im ersten Monat nach der Zusammenarbeit. Der ROI war sofort sichtbar."',tag:'Neukundengewinnung'},
+];
+const TestimonialsSection=()=>{
+  const [ref,vis]=useInView();
+  return(
+    <section style={{padding:'100px 48px',background:'#0A0A0A',borderTop:'1px solid #1E1E1E'}}>
+      <div style={{maxWidth:1060,margin:'0 auto'}}>
+        <div ref={ref} style={{textAlign:'center',marginBottom:52,opacity:vis?1:0,transition:'all 600ms'}}>
+          <Tag color={ACCENT}>Erfolgsgeschichten</Tag>
+          <h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(26px,3.5vw,46px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em'}}>Was unsere Kunden sagen</h2>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+          {testimonials.map((t,i)=>(
+            <div key={i} style={{background:'#0D0D0D',border:'1px solid #1E1E1E',borderRadius:16,padding:'32px 26px',opacity:vis?1:0,transform:vis?'none':'translateY(20px)',transition:`all 600ms ${i*100}ms`}}>
+              <div style={{fontFamily:'Syne,sans-serif',fontSize:28,fontWeight:700,color:ACCENT,letterSpacing:'-.03em',marginBottom:4}}>{t.result}</div>
+              <div style={{background:`${ACCENT}18`,border:`1px solid ${ACCENT}33`,borderRadius:4,display:'inline-block',padding:'2px 8px',marginBottom:16}}><span style={{fontFamily:'Inter,sans-serif',fontSize:9,fontWeight:600,color:ACCENT,letterSpacing:'.06em',textTransform:'uppercase'}}>{t.tag}</span></div>
+              <p style={{fontFamily:'Inter,sans-serif',fontSize:13,color:'#666',lineHeight:1.75,marginBottom:20,fontStyle:'italic'}}>{t.text}</p>
+              <div style={{borderTop:'1px solid #1A1A1A',paddingTop:14}}>
+                <div style={{fontFamily:'Inter,sans-serif',fontSize:12,fontWeight:600,color:'#888'}}>{t.name}</div>
+                <div style={{fontFamily:'Inter,sans-serif',fontSize:11,color:'#3A3A3A'}}>{t.company}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* FAQ */
+const faqs=[
+  {q:'Für welche Plattformen verwaltet ihr unsere Kanäle?',a:'Wir sind auf Instagram, TikTok, LinkedIn, YouTube und Facebook aktiv. Je nach Zielgruppe empfehlen wir die passenden Plattformen.'},
+  {q:'Wie viele Posts produziert ihr pro Monat?',a:'Je nach Paket zwischen 20 und 50 Posts inklusive Stories, Reels und statischem Content. Alles wird im Voraus zur Freigabe eingereicht.'},
+  {q:'Was passiert wenn uns ein Post nicht gefällt?',a:'Du gibst jeden Post vor der Veröffentlichung frei. Änderungswünsche setzen wir kurzfristig um – das ist unser Standard.'},
+  {q:'Übernehmt ihr auch bezahlte Werbung (Ads)?',a:'Ja, auf Wunsch übernehmen wir auch die Verwaltung von Social Media Ads. Das wird separat vereinbart.'},
+  {q:'Wie lange dauert der Onboarding-Prozess?',a:'In der Regel sind wir innerhalb von 7–10 Tagen nach dem Erstgespräch vollständig operativ. Danach läuft alles automatisch.'},
+];
+const FAQSection=()=>{const [open,setOpen]=useState(null);const [ref,vis]=useInView();return(<section style={{padding:'100px 48px',background:'#080808',borderTop:'1px solid #1E1E1E'}}><div style={{maxWidth:740,margin:'0 auto'}}><div ref={ref} style={{textAlign:'center',marginBottom:52,opacity:vis?1:0,transition:'all 600ms'}}><Tag color={ACCENT}>FAQ</Tag><h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(26px,3.5vw,44px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.03em'}}>Häufige Fragen</h2></div><div style={{borderTop:'1px solid #2A2A2A'}}>{faqs.map((item,i)=>(<div key={i} style={{borderBottom:'1px solid #1E1E1E'}}><button onClick={()=>setOpen(open===i?null:i)} style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',padding:open===i?'20px 0 20px 16px':'20px 0 20px 2px',background:'none',border:'none',cursor:'pointer',textAlign:'left',borderLeft:open===i?`3px solid ${ACCENT}`:'3px solid transparent',transition:'all 200ms'}}><span style={{fontFamily:'Inter,sans-serif',fontSize:14,fontWeight:500,color:open===i?'#F0EDE8':'#AAA',paddingRight:16}}>{item.q}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={open===i?ACCENT:'#333'} strokeWidth="1.5" style={{flexShrink:0,transform:open===i?'rotate(45deg)':'none',transition:'transform 300ms'}}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><div style={{overflow:'hidden',maxHeight:open===i?200:0,transition:'max-height 350ms cubic-bezier(.4,0,.2,1)'}}><p style={{fontFamily:'Inter,sans-serif',fontSize:13,color:'#666',lineHeight:1.8,paddingBottom:20,paddingLeft:16}}>{item.a}</p></div></div>))}</div></div></section>);};
+
+/* CTA */
+const CTASection=()=>{const [ref,vis]=useInView();return(<section id="cta" style={{padding:'140px 48px',background:'#080808',borderTop:'1px solid #1E1E1E',position:'relative',overflow:'hidden',textAlign:'center'}}><div style={{position:'absolute',inset:0,background:`radial-gradient(ellipse 80% 60% at 50% 50%,${ACCENT}0C,transparent 70%)`,pointerEvents:'none'}}/><div style={{position:'absolute',inset:0,backgroundImage:'linear-gradient(#1E1E1E 1px,transparent 1px),linear-gradient(90deg,#1E1E1E 1px,transparent 1px)',backgroundSize:'64px 64px',opacity:.1}}/><div ref={ref} style={{position:'relative',maxWidth:660,margin:'0 auto',opacity:vis?1:0,transform:vis?'none':'translateY(24px)',transition:'all 700ms'}}><Tag color={ACCENT}>Jetzt starten</Tag><h2 style={{fontFamily:'Syne,sans-serif',fontSize:'clamp(30px,5vw,60px)',fontWeight:700,color:'#F0EDE8',letterSpacing:'-.04em',lineHeight:1.05,marginBottom:16}}>Dein Social Media<br/><span style={{color:ACCENT}}>ab nächstem Monat aktiv.</span></h2><p style={{fontFamily:'Inter,sans-serif',fontSize:15,color:'#555',lineHeight:1.7,marginBottom:44}}>Kostenloses Erstgespräch – 30 Minuten. Wir analysieren deinen aktuellen Kanal und zeigen dir, welches Wachstum realistisch ist.</p><GoldBtn href="mailto:hello@goldenpost.de" big>Kostenloses Gespräch buchen →</GoldBtn><p style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#333',marginTop:20}}>Keine Mindestlaufzeit · Monatlich kündbar</p></div></section>);};
+
+const Footer=()=>(<footer style={{padding:'48px 48px 32px',borderTop:'1px solid #1E1E1E',background:'#080808'}}><div style={{maxWidth:1100,margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:20}}><a href="/" style={{display:'flex',alignItems:'center',gap:10,textDecoration:'none'}}><img src="../assets/logo.png" width={28} height={28} style={{borderRadius:5}} alt="GP"/><span style={{fontFamily:'Syne,sans-serif',fontSize:13,fontWeight:700,color:'#3A3A3A'}}>GOLDEN POST</span></a><div style={{display:'flex',gap:24}}>{[{l:'Content',h:'/content/'},{l:'Webdesign',h:'/webdesign/'},{l:'Startseite',h:'/'}].map(({l,h})=>(<a key={l} href={h} style={{fontFamily:'Inter,sans-serif',fontSize:12,color:'#333',textDecoration:'none'}} onMouseEnter={e=>e.target.style.color='#777'} onMouseLeave={e=>e.target.style.color='#333'}>{l}</a>))}</div><span style={{fontFamily:'Inter,sans-serif',fontSize:11,color:'#222'}}>© 2026 GoldenPost</span></div></footer>);
+
+const App=()=>(<div id="scroll"><Nav/><Hero/><ServiceGrid/><AnalyticsMockup/><ProcessSection/><ComparisonSection/><TestimonialsSection/><FAQSection/><CTASection/><Footer/></div>);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
